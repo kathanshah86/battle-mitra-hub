@@ -15,7 +15,7 @@ const Navbar = () => {
           <img 
             src="/lovable-uploads/b336d175-874a-4fce-a78d-6cb2d1f49ecc.png" 
             alt="Battle Mitra Logo" 
-            className="h-10 w-auto" 
+            className="h-14 w-auto" 
           />
         </Link>
 

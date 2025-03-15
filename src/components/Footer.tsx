@@ -1,3 +1,4 @@
+
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube, Twitch } from 'lucide-react';
 
@@ -11,7 +12,7 @@ const Footer = () => {
               <img 
                 src="/lovable-uploads/b336d175-874a-4fce-a78d-6cb2d1f49ecc.png" 
                 alt="Battle Mitra Logo" 
-                className="h-10 w-auto" 
+                className="h-16 w-auto" 
               />
             </Link>
             <p className="text-gray-400 text-sm">
