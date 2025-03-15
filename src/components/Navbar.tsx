@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Trophy, Menu, X, User, Search, Bell } from 'lucide-react';
+import { Menu, X, User, Search, Bell } from 'lucide-react';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,10 +12,11 @@ const Navbar = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2">
-          <Trophy className="h-6 w-6 text-esports-purple" />
-          <span className="text-xl font-orbitron font-bold text-white">
-            Battle<span className="text-esports-purple">Mitra</span>
-          </span>
+          <img 
+            src="/lovable-uploads/b336d175-874a-4fce-a78d-6cb2d1f49ecc.png" 
+            alt="Battle Mitra Logo" 
+            className="h-10 w-auto" 
+          />
         </Link>
 
         {/* Desktop Navigation */}
