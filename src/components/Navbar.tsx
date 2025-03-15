@@ -17,6 +17,7 @@ const Navbar = () => {
             alt="Battle Mitra Logo" 
             className="h-14 w-auto" 
           />
+          <span className="text-white font-bold text-xl font-orbitron">Battle Mitra</span>
         </Link>
 
         {/* Desktop Navigation */}

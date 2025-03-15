@@ -14,6 +14,7 @@ const Footer = () => {
                 alt="Battle Mitra Logo" 
                 className="h-16 w-auto" 
               />
+              <span className="text-white font-bold text-xl font-orbitron">Battle Mitra</span>
             </Link>
             <p className="text-gray-400 text-sm">
               The ultimate destination for esports tournaments, competitive gaming, and community building.
