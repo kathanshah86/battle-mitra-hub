@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { User, Medal, Search, Filter } from "lucide-react";
+import Trophy from "@/components/Trophy";
 import { players } from "@/data/mockData";
 import { Input } from "@/components/ui/input";
 import {
