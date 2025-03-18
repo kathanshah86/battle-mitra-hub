@@ -12,10 +12,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, LogOut, Settings, Trophy } from 'lucide-react';
+import { User, LogOut, Settings, Trophy, LayoutDashboard } from 'lucide-react';
 
 export const UserMenu = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   
   if (!user) return null;
@@ -39,6 +39,16 @@ export const UserMenu = () => {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
+        
+        {isAdmin && (
+          <DropdownMenuItem asChild>
+            <Link to="/admin/dashboard" className="cursor-pointer flex w-full items-center" onClick={() => setIsOpen(false)}>
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              Admin Panel
+            </Link>
+          </DropdownMenuItem>
+        )}
+        
         <DropdownMenuItem asChild>
           <Link to="/profile" className="cursor-pointer flex w-full items-center" onClick={() => setIsOpen(false)}>
             <User className="mr-2 h-4 w-4" />
