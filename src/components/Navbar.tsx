@@ -2,10 +2,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Menu, X, User, Search, Bell } from 'lucide-react';
+import { Menu, X, Search, Bell } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { UserMenu } from '@/components/UserMenu';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 bg-esports-darker/90 backdrop-blur-md border-b border-gray-800">
@@ -44,12 +47,19 @@ const Navbar = () => {
           <button className="text-gray-300 hover:text-white">
             <Bell className="h-5 w-5" />
           </button>
-          <Button variant="ghost" className="text-gray-300 hover:text-white" asChild>
-            <Link to="/login">Login</Link>
-          </Button>
-          <Button className="bg-gradient-to-r from-esports-purple to-esports-blue hover:opacity-90 transition-opacity">
-            Sign Up
-          </Button>
+          
+          {user ? (
+            <UserMenu />
+          ) : (
+            <>
+              <Button variant="ghost" className="text-gray-300 hover:text-white" asChild>
+                <Link to="/auth">Login</Link>
+              </Button>
+              <Button className="bg-gradient-to-r from-esports-purple to-esports-blue hover:opacity-90 transition-opacity" asChild>
+                <Link to="/auth?tab=register">Sign Up</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -93,14 +103,28 @@ const Navbar = () => {
             >
               News
             </Link>
-            <div className="flex space-x-4 pt-2">
-              <Button variant="outline" className="flex-1" asChild>
-                <Link to="/login" onClick={() => setIsMenuOpen(false)}>Login</Link>
+            
+            {user ? (
+              <Button 
+                variant="destructive" 
+                className="w-full" 
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  useAuth().signOut();
+                }}
+              >
+                Log Out
               </Button>
-              <Button className="flex-1 bg-gradient-to-r from-esports-purple to-esports-blue hover:opacity-90 transition-opacity" asChild>
-                <Link to="/signup" onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
-              </Button>
-            </div>
+            ) : (
+              <div className="flex space-x-4 pt-2">
+                <Button variant="outline" className="flex-1" asChild>
+                  <Link to="/auth" onClick={() => setIsMenuOpen(false)}>Login</Link>
+                </Button>
+                <Button className="flex-1 bg-gradient-to-r from-esports-purple to-esports-blue hover:opacity-90 transition-opacity" asChild>
+                  <Link to="/auth?tab=register" onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
