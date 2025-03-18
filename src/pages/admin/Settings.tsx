@@ -8,8 +8,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
 import { Save, Globe, Mail, Bell, FileText } from "lucide-react";
+import { useForm } from "react-hook-form";
 
 const AdminSettings = () => {
+  // Create form instances for each form on the page
+  const generalForm = useForm();
+  const emailForm = useForm();
+  const contentForm = useForm();
+  
   const handleSave = () => {
     toast({
       title: "Settings Saved",
@@ -47,9 +53,10 @@ const AdminSettings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Form>
+              <Form {...generalForm}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
+                    control={generalForm.control}
                     name="siteName"
                     render={({ field }) => (
                       <FormItem>
@@ -58,6 +65,7 @@ const AdminSettings = () => {
                           <Input 
                             defaultValue="Battle Mitra"
                             className="bg-esports-darker border-gray-700"
+                            {...field}
                           />
                         </FormControl>
                         <FormDescription>
@@ -68,6 +76,7 @@ const AdminSettings = () => {
                   />
                   
                   <FormField
+                    control={generalForm.control}
                     name="adminEmail"
                     render={({ field }) => (
                       <FormItem>
@@ -76,6 +85,7 @@ const AdminSettings = () => {
                           <Input 
                             defaultValue="admin@battlemitra.com"
                             className="bg-esports-darker border-gray-700"
+                            {...field}
                           />
                         </FormControl>
                         <FormDescription>
@@ -86,6 +96,7 @@ const AdminSettings = () => {
                   />
                   
                   <FormField
+                    control={generalForm.control}
                     name="timezone"
                     render={({ field }) => (
                       <FormItem>
@@ -94,6 +105,7 @@ const AdminSettings = () => {
                           <Input 
                             defaultValue="Asia/Kolkata"
                             className="bg-esports-darker border-gray-700"
+                            {...field}
                           />
                         </FormControl>
                         <FormDescription>
@@ -104,6 +116,7 @@ const AdminSettings = () => {
                   />
                   
                   <FormField
+                    control={generalForm.control}
                     name="currency"
                     render={({ field }) => (
                       <FormItem>
@@ -112,6 +125,7 @@ const AdminSettings = () => {
                           <Input 
                             defaultValue="INR (₹)"
                             className="bg-esports-darker border-gray-700"
+                            {...field}
                           />
                         </FormControl>
                         <FormDescription>
@@ -122,6 +136,7 @@ const AdminSettings = () => {
                   />
                   
                   <FormField
+                    control={generalForm.control}
                     name="maintenanceMode"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-700 p-4 bg-esports-darker">
@@ -132,13 +147,14 @@ const AdminSettings = () => {
                           </FormDescription>
                         </div>
                         <FormControl>
-                          <Switch checked={false} />
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
                       </FormItem>
                     )}
                   />
                   
                   <FormField
+                    control={generalForm.control}
                     name="userRegistration"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-700 p-4 bg-esports-darker">
@@ -149,7 +165,7 @@ const AdminSettings = () => {
                           </FormDescription>
                         </div>
                         <FormControl>
-                          <Switch checked={true} />
+                          <Switch checked={field.value || true} onCheckedChange={field.onChange} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -212,11 +228,12 @@ const AdminSettings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Form>
+              <Form {...emailForm}>
                 <div className="space-y-4">
                   <h3 className="font-medium text-lg">Email Notifications</h3>
                   
                   <FormField
+                    control={emailForm.control}
                     name="emailFromName"
                     render={({ field }) => (
                       <FormItem>
@@ -225,6 +242,7 @@ const AdminSettings = () => {
                           <Input 
                             defaultValue="Battle Mitra"
                             className="bg-esports-darker border-gray-700"
+                            {...field}
                           />
                         </FormControl>
                       </FormItem>
@@ -232,6 +250,7 @@ const AdminSettings = () => {
                   />
                   
                   <FormField
+                    control={emailForm.control}
                     name="emailFromAddress"
                     render={({ field }) => (
                       <FormItem>
@@ -240,6 +259,7 @@ const AdminSettings = () => {
                           <Input 
                             defaultValue="notifications@battlemitra.com"
                             className="bg-esports-darker border-gray-700"
+                            {...field}
                           />
                         </FormControl>
                       </FormItem>
@@ -248,6 +268,7 @@ const AdminSettings = () => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                     <FormField
+                      control={emailForm.control}
                       name="notifyNewUser"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-700 p-4 bg-esports-darker">
@@ -258,13 +279,14 @@ const AdminSettings = () => {
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={true} />
+                            <Switch checked={field.value || true} onCheckedChange={field.onChange} />
                           </FormControl>
                         </FormItem>
                       )}
                     />
                     
                     <FormField
+                      control={emailForm.control}
                       name="notifyNewTournament"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-700 p-4 bg-esports-darker">
@@ -275,13 +297,14 @@ const AdminSettings = () => {
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={true} />
+                            <Switch checked={field.value || true} onCheckedChange={field.onChange} />
                           </FormControl>
                         </FormItem>
                       )}
                     />
                     
                     <FormField
+                      control={emailForm.control}
                       name="notifyPayment"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-700 p-4 bg-esports-darker">
@@ -292,13 +315,14 @@ const AdminSettings = () => {
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={true} />
+                            <Switch checked={field.value || true} onCheckedChange={field.onChange} />
                           </FormControl>
                         </FormItem>
                       )}
                     />
                     
                     <FormField
+                      control={emailForm.control}
                       name="notifyResults"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-700 p-4 bg-esports-darker">
@@ -309,7 +333,7 @@ const AdminSettings = () => {
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch checked={true} />
+                            <Switch checked={field.value || true} onCheckedChange={field.onChange} />
                           </FormControl>
                         </FormItem>
                       )}
@@ -333,9 +357,10 @@ const AdminSettings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Form>
+              <Form {...contentForm}>
                 <div className="space-y-6">
                   <FormField
+                    control={contentForm.control}
                     name="homeHeroTitle"
                     render={({ field }) => (
                       <FormItem>
@@ -344,6 +369,7 @@ const AdminSettings = () => {
                           <Input 
                             defaultValue="Battle Mitra - India's Premier Esports Tournament Platform"
                             className="bg-esports-darker border-gray-700"
+                            {...field}
                           />
                         </FormControl>
                       </FormItem>
@@ -351,6 +377,7 @@ const AdminSettings = () => {
                   />
                   
                   <FormField
+                    control={contentForm.control}
                     name="homeHeroDescription"
                     render={({ field }) => (
                       <FormItem>
@@ -359,6 +386,7 @@ const AdminSettings = () => {
                           <Textarea 
                             defaultValue="Join thousands of players competing in tournaments across various games. Win prizes and build your esports career with Battle Mitra."
                             className="min-h-[100px] bg-esports-darker border-gray-700"
+                            {...field}
                           />
                         </FormControl>
                       </FormItem>
@@ -366,6 +394,7 @@ const AdminSettings = () => {
                   />
                   
                   <FormField
+                    control={contentForm.control}
                     name="announcement"
                     render={({ field }) => (
                       <FormItem>
@@ -374,6 +403,7 @@ const AdminSettings = () => {
                           <Textarea 
                             placeholder="Enter an announcement to display on all pages..."
                             className="min-h-[100px] bg-esports-darker border-gray-700"
+                            {...field}
                           />
                         </FormControl>
                         <FormDescription>
@@ -384,6 +414,7 @@ const AdminSettings = () => {
                   />
                   
                   <FormField
+                    control={contentForm.control}
                     name="showAnnouncement"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-700 p-4 bg-esports-darker">
@@ -394,7 +425,7 @@ const AdminSettings = () => {
                           </FormDescription>
                         </div>
                         <FormControl>
-                          <Switch checked={false} />
+                          <Switch checked={field.value || false} onCheckedChange={field.onChange} />
                         </FormControl>
                       </FormItem>
                     )}

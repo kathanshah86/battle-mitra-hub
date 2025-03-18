@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
 import { 
   Search, 
   User, 
@@ -25,6 +26,7 @@ const AdminUsers = () => {
   const [userDetailsOpen, setUserDetailsOpen] = useState(false);
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
+  const banUserForm = useForm();
   
   // Mock data - in a real app, this would come from your backend
   const users = [
@@ -260,7 +262,7 @@ const AdminUsers = () => {
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        onClick={() => openBanUser(user)}
+                        onClick={() => openBanDialog(user)}
                       >
                         <Ban className="h-4 w-4" />
                       </Button>
@@ -391,10 +393,9 @@ const AdminUsers = () => {
                 </div>
               </div>
               
-              <Form
-                // This would normally use a form hook
-              >
+              <Form {...banUserForm}>
                 <FormField
+                  control={banUserForm.control}
                   name="banReason"
                   render={({ field }) => (
                     <FormItem>
@@ -403,6 +404,7 @@ const AdminUsers = () => {
                         <Input 
                           placeholder="e.g., Violating platform rules, cheating, etc."
                           className="bg-esports-darker border-gray-700"
+                          {...field}
                         />
                       </FormControl>
                     </FormItem>

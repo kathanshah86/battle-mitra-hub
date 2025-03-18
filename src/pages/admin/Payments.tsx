@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
 import { 
   Wallet, 
   CreditCard, 
@@ -27,6 +28,7 @@ import {
 const AdminPayments = () => {
   const [refundDialogOpen, setRefundDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const refundForm = useForm();
   
   // Mock data - in a real app, this would come from your backend
   const transactions = [
@@ -335,8 +337,9 @@ const AdminPayments = () => {
                 </div>
               </div>
               
-              <Form>
+              <Form {...refundForm}>
                 <FormField
+                  control={refundForm.control}
                   name="refundReason"
                   render={({ field }) => (
                     <FormItem>
@@ -345,6 +348,7 @@ const AdminPayments = () => {
                         <Input 
                           placeholder="e.g., Tournament canceled, user request, etc."
                           className="bg-esports-darker border-gray-700"
+                          {...field}
                         />
                       </FormControl>
                     </FormItem>

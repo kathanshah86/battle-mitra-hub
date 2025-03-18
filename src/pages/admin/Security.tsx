@@ -3,11 +3,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
 import { 
   Shield, 
   Key, 
@@ -25,6 +27,9 @@ const AdminSecurity = () => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [setup2FAOpen, setSetup2FAOpen] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
+  
+  // Create form instances for each form in the page
+  const ipAccessForm = useForm();
   
   // Mock data - in a real app, these would come from your backend
   const apiKey = "sk_test_51NxgT7SIJD5tF4Tk1X8Kj7jd5Gk3lFm9";
@@ -204,9 +209,10 @@ const AdminSecurity = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form>
+          <Form {...ipAccessForm}>
             <div className="space-y-4">
               <FormField
+                control={ipAccessForm.control}
                 name="ipControl"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-700 p-4 bg-esports-darker">
@@ -217,13 +223,14 @@ const AdminSecurity = () => {
                       </FormDescription>
                     </div>
                     <FormControl>
-                      <Switch checked={false} />
+                      <Switch checked={false} onCheckedChange={field.onChange} />
                     </FormControl>
                   </FormItem>
                 )}
               />
               
               <FormField
+                control={ipAccessForm.control}
                 name="allowedIPs"
                 render={({ field }) => (
                   <FormItem>
@@ -236,6 +243,7 @@ const AdminSecurity = () => {
                         placeholder="e.g., 103.25.128.45"
                         className="min-h-[100px] bg-esports-darker border-gray-700 font-mono"
                         disabled
+                        {...field}
                       />
                     </FormControl>
                   </FormItem>
