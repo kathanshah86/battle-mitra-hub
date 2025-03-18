@@ -32,6 +32,8 @@ serve(async (req) => {
       )
     }
 
+    console.log(`Creating payment session for ${amount} ${currency} - ${description}`)
+
     // Create a Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -42,7 +44,7 @@ serve(async (req) => {
             product_data: {
               name: description || 'Tournament Entry',
             },
-            unit_amount: amount, // Amount in cents
+            unit_amount: amount, // Amount in cents/paisa
           },
           quantity: 1,
         },
@@ -53,6 +55,8 @@ serve(async (req) => {
       metadata: metadata || {},
     })
 
+    console.log("Payment session created successfully:", session.id)
+    
     return new Response(
       JSON.stringify({ id: session.id, url: session.url }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

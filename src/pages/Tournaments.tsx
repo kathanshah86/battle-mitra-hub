@@ -304,11 +304,10 @@ const Tournaments = () => {
                           ? "bg-green-500 hover:bg-green-600"
                           : "bg-gray-700 hover:bg-gray-600"
                       }`}
-                      disabled={tournament.status === "completed"}
                     >
                       <Link to={`/tournaments/${tournament.id}`}>
                         {tournament.status === "upcoming"
-                          ? "Register Now"
+                          ? "View Details"
                           : tournament.status === "ongoing"
                           ? "View Matches"
                           : "View Results"}

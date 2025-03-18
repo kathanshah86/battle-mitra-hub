@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,38 +21,37 @@ import RequireAdmin from "./components/admin/RequireAdmin";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/tournaments" element={<Tournaments />} />
-            <Route path="/leaderboards" element={<Leaderboards />} />
-            <Route path="/live" element={<Live />} />
-            <Route path="/auth" element={<Auth />} />
-            
-            {/* Admin Routes - All protected with RequireAdmin component */}
-            <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
-              <Route index element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="tournaments" element={<AdminTournaments />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="payments" element={<AdminPayments />} />
-              <Route path="settings" element={<AdminSettings />} />
-              <Route path="security" element={<AdminSecurity />} />
-            </Route>
-            
-            {/* Catch-all route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/tournaments" element={<Tournaments />} />
+              <Route path="/tournaments/:id" element={<TournamentDetail />} />
+              <Route path="/leaderboards" element={<Leaderboards />} />
+              <Route path="/live" element={<Live />} />
+              <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
+                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="tournaments" element={<AdminTournaments />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="payments" element={<AdminPayments />} />
+                <Route path="settings" element={<AdminSettings />} />
+                <Route path="security" element={<AdminSecurity />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
