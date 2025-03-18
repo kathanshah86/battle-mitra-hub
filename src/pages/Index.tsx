@@ -1,7 +1,8 @@
+
 import Navbar from "@/components/Navbar";
-import HeroSection from "@/components/HeroSection";
-import UpcomingTournaments from "@/components/UpcomingTournaments";
-import LiveMatches from "@/components/LiveMatches";
+import HeroSection from "@/components/home/HeroSection";
+import UpcomingTournaments from "@/components/home/UpcomingTournaments";
+import LiveMatches from "@/components/home/LiveMatches";
 import Footer from "@/components/Footer";
 import { StrategyAssistant } from "@/components/game/StrategyAssistant";
 
