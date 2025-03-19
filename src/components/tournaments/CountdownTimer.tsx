@@ -1,18 +1,21 @@
 
 import { useEffect, useState } from "react";
-import { Clock } from "lucide-react";
+import { Clock, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 interface CountdownTimerProps {
   targetDate: string | Date;
   label?: string;
   onComplete?: () => void;
+  showAlert?: boolean;
 }
 
 const CountdownTimer = ({ 
   targetDate, 
   label = "Registration closes in", 
-  onComplete 
+  onComplete,
+  showAlert = false
 }: CountdownTimerProps) => {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -58,10 +61,16 @@ const CountdownTimer = ({
   }, [targetDate, onComplete]);
 
   return (
-    <Card className="bg-esports-darker p-4 border-gray-700">
+    <Card className={`p-4 border-gray-700 ${showAlert && !isComplete && timeLeft.days < 1 ? "bg-red-900/20 border-red-800" : "bg-esports-darker"}`}>
       <div className="flex items-center gap-2 mb-2">
-        <Clock className="h-4 w-4 text-esports-purple" />
-        <span className="text-sm text-gray-300">{isComplete ? "Registration closed" : label}</span>
+        {showAlert && !isComplete && timeLeft.days < 1 ? (
+          <AlertCircle className="h-4 w-4 text-red-500" />
+        ) : (
+          <Clock className="h-4 w-4 text-esports-purple" />
+        )}
+        <span className={`text-sm ${showAlert && !isComplete && timeLeft.days < 1 ? "text-red-400" : "text-gray-300"}`}>
+          {isComplete ? "Registration closed" : label}
+        </span>
       </div>
       
       {!isComplete ? (
@@ -87,6 +96,15 @@ const CountdownTimer = ({
         <div className="text-center text-gray-400">
           Registration period has ended
         </div>
+      )}
+      
+      {showAlert && !isComplete && timeLeft.days < 1 && (
+        <>
+          <Separator className="my-2 bg-red-800/50" />
+          <div className="text-xs text-red-400 text-center">
+            Hurry! Registration is closing soon
+          </div>
+        </>
       )}
     </Card>
   );

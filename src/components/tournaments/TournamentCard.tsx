@@ -4,12 +4,41 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tournament } from "@/types";
+import { Clock } from "lucide-react";
 
 interface TournamentCardProps {
   tournament: Tournament;
 }
 
 const TournamentCard = ({ tournament }: TournamentCardProps) => {
+  const getRegistrationEndDate = () => {
+    const startDate = new Date(tournament.startDate);
+    const regEndDate = new Date(startDate);
+    regEndDate.setDate(startDate.getDate() - 1); // Registration closes 1 day before event
+    return regEndDate;
+  };
+  
+  const getTimeLeft = () => {
+    const now = new Date().getTime();
+    const endDate = getRegistrationEndDate().getTime();
+    const difference = endDate - now;
+    
+    if (difference <= 0) return null;
+    
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    
+    if (days > 0) {
+      return `${days}d ${hours}h left`;
+    } else if (hours > 0) {
+      return `${hours}h left`;
+    } else {
+      return `Closing soon`;
+    }
+  };
+  
+  const timeLeft = tournament.status === "upcoming" ? getTimeLeft() : null;
+  
   return (
     <Card className="bg-esports-card border-gray-800 hover:border-esports-purple/50 transition-all duration-300 overflow-hidden group">
       <div className="relative h-40 overflow-hidden">
@@ -42,6 +71,15 @@ const TournamentCard = ({ tournament }: TournamentCardProps) => {
             </Badge>
           )}
         </div>
+        
+        {timeLeft && (
+          <div className="absolute bottom-2 right-2">
+            <div className="bg-black/70 text-xs px-2 py-1 rounded flex items-center gap-1">
+              <Clock className="h-3 w-3 text-esports-purple" />
+              <span className="text-white">{timeLeft}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <CardHeader className="pb-2">

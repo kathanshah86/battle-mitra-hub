@@ -53,6 +53,15 @@ const TournamentDetail = () => {
     return regEndDate;
   };
   
+  const isRegistrationEnding = () => {
+    if (!tournament) return false;
+    const now = new Date();
+    const endDate = getRegistrationEndDate();
+    const diffTime = endDate.getTime() - now.getTime();
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    return diffDays < 1 && diffDays > 0;
+  };
+  
   useEffect(() => {
     const foundTournament = tournaments.find(t => t.id === id);
     
@@ -347,12 +356,26 @@ const TournamentDetail = () => {
         </div>
         
         <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            <div className="lg:col-span-3">
+          {tournament.status === "upcoming" && !isRegistered && (
+            <div className="mb-6">
               <CountdownTimer 
                 targetDate={getRegistrationEndDate()} 
                 label="Registration closes in"
+                showAlert={isRegistrationEnding()}
               />
+            </div>
+          )}
+          
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            <div className="lg:col-span-3">
+              <Card className="bg-esports-card border-gray-800">
+                <CardContent className="pt-6">
+                  <h3 className="text-xl font-semibold mb-4">Tournament Details</h3>
+                  <p className="text-gray-300">
+                    {tournament.description}
+                  </p>
+                </CardContent>
+              </Card>
             </div>
             <div>
               <Card className="bg-esports-card border-gray-800 h-full">
@@ -706,23 +729,4 @@ const TournamentDetail = () => {
             >
               {submitLoading ? "Registering..." : "Continue"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <WalletPaymentDialog
-        open={showPaymentDialog}
-        onOpenChange={setShowPaymentDialog}
-        tournamentName={tournament?.title || ""}
-        username={gameUsername}
-        entryFee={tournament?.entryFee || 0}
-        onConfirmPayment={handlePaymentConfirm}
-        onCancel={() => setShowPaymentDialog(false)}
-      />
-      
-      <Footer />
-    </div>
-  );
-};
-
-export default TournamentDetail;
+          </DialogFooter
