@@ -20,6 +20,7 @@ import AdminPayments from "./pages/admin/Payments";
 import AdminSettings from "./pages/admin/Settings";
 import AdminSecurity from "./pages/admin/Security";
 import RequireAdmin from "./components/admin/RequireAdmin";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,10 @@ function App() {
               <Route path="/tournaments/:id" element={<TournamentDetail />} />
               <Route path="/leaderboards" element={<Leaderboards />} />
               <Route path="/live" element={<Live />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/:id" element={<Profile />} />
+              <Route path="/my-tournaments" element={<Profile />} />
+              <Route path="/settings" element={<Profile />} />
               <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
                 <Route index element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
