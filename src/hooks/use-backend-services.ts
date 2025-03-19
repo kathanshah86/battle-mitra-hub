@@ -89,23 +89,33 @@ export const useBackendServices = () => {
     setPaymentLoading(true);
     
     try {
+      console.log('Creating payment with params:', params);
+      
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: params,
       });
       
-      if (error) throw new Error(error.message);
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to create payment session');
+      }
+      
+      if (!data || !data.url) {
+        console.error('Invalid response from payment function:', data);
+        throw new Error('Invalid payment session response');
+      }
+      
+      console.log('Payment session created successfully:', data);
       
       // Redirect to Stripe checkout
-      if (data.url) {
-        window.location.href = data.url;
-      }
+      window.location.href = data.url;
       
       return data;
     } catch (error) {
       console.error('Payment creation error:', error);
       toast({
         title: 'Payment Error',
-        description: error instanceof Error ? error.message : 'Failed to create payment',
+        description: error instanceof Error ? error.message : 'Failed to create payment session',
         variant: 'destructive'
       });
       return null;

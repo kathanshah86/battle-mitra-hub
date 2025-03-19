@@ -16,16 +16,28 @@ serve(async (req) => {
   try {
     const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY')
     if (!STRIPE_SECRET_KEY) {
-      throw new Error('STRIPE_SECRET_KEY is not set in the environment variables')
+      console.error('STRIPE_SECRET_KEY is not set in environment variables')
+      throw new Error('Payment service is not configured properly. STRIPE_SECRET_KEY is missing.')
     }
 
-    const stripe = new Stripe(STRIPE_SECRET_KEY, {
-      apiVersion: '2022-11-15',
-    })
+    // Parse request body
+    let requestData
+    try {
+      requestData = await req.json()
+      console.log('Received payment request:', JSON.stringify(requestData))
+    } catch (e) {
+      console.error('Error parsing request JSON:', e)
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body. Expected JSON.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
-    const { amount, currency, description, successUrl, cancelUrl, metadata } = await req.json()
+    const { amount, currency, description, successUrl, cancelUrl, metadata } = requestData
 
+    // Validate required fields
     if (!amount || !currency || !successUrl || !cancelUrl) {
+      console.error('Missing required fields:', { amount, currency, successUrl, cancelUrl })
       return new Response(
         JSON.stringify({ error: 'Missing required fields: amount, currency, successUrl, and cancelUrl are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -33,6 +45,11 @@ serve(async (req) => {
     }
 
     console.log(`Creating payment session for ${amount} ${currency} - ${description}`)
+
+    // Initialize Stripe
+    const stripe = new Stripe(STRIPE_SECRET_KEY, {
+      apiVersion: '2022-11-15',
+    })
 
     // Create a Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
@@ -64,7 +81,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in create-payment function:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || 'An unexpected error occurred' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
