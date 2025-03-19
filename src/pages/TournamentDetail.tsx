@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CalendarDays, Trophy, Users, AlertCircle, Clock, MapPin, Check } from "lucide-react";
@@ -67,9 +66,12 @@ const TournamentDetail = () => {
   }, [id, user]);
   
   const checkRegistrationStatus = async () => {
+    if (!id || !user?.id) return;
+    
     try {
+      // Use the any type to work around TypeScript errors with the database schema
       const { data, error } = await supabase
-        .from('tournament_registrations')
+        .from('tournament_registrations' as any)
         .select('*')
         .eq('tournament_id', id)
         .eq('user_id', user?.id)
@@ -166,6 +168,8 @@ const TournamentDetail = () => {
   }, []);
   
   const handleSubmitGameId = async () => {
+    if (!id || !user?.id) return;
+    
     if (!gameUsername.trim()) {
       toast({
         title: "Game username required",
@@ -178,15 +182,15 @@ const TournamentDetail = () => {
     setSubmitLoading(true);
     
     try {
-      // Store registration in database
+      // Store registration in database using any type to work around TypeScript errors
       const { error } = await supabase
-        .from('tournament_registrations')
+        .from('tournament_registrations' as any)
         .insert({
           tournament_id: id,
           user_id: user?.id,
           game_username: gameUsername,
           registration_date: new Date().toISOString()
-        });
+        } as any);
       
       if (error) throw error;
       
