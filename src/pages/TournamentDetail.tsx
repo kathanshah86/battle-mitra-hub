@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CalendarDays, Trophy, Users, AlertCircle, Clock, MapPin, Check, Users2, Flame, Zap } from "lucide-react";
@@ -729,4 +730,28 @@ const TournamentDetail = () => {
             >
               {submitLoading ? "Registering..." : "Continue"}
             </Button>
-          </DialogFooter
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {tournament && (
+        <WalletPaymentDialog
+          open={showPaymentDialog}
+          onOpenChange={setShowPaymentDialog}
+          tournamentName={tournament.title}
+          username={gameUsername}
+          entryFee={tournament.entryFee || "0"}
+          onConfirmPayment={handlePaymentConfirm}
+          onCancel={() => {
+            setShowPaymentDialog(false);
+            setShowGameIdDialog(true);
+          }}
+        />
+      )}
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default TournamentDetail;
