@@ -33,7 +33,7 @@ serve(async (req) => {
       )
     }
 
-    const { amount, currency, description, successUrl, cancelUrl, metadata } = requestData
+    const { amount, currency, description, successUrl, cancelUrl, metadata, paymentType } = requestData
 
     // Validate required fields
     if (!amount || !currency || !successUrl || !cancelUrl) {
@@ -51,7 +51,25 @@ serve(async (req) => {
       apiVersion: '2022-11-15',
     })
 
-    // Create a Stripe Checkout Session
+    // Handle wallet payment (direct registration without Stripe)
+    if (paymentType === 'wallet') {
+      console.log("Processing wallet payment directly");
+      
+      // In a real app, you would deduct from user's wallet balance here
+      // For this demo, we're just returning a success response
+      
+      return new Response(
+        JSON.stringify({ 
+          id: `wallet_payment_${Date.now()}`, 
+          success: true,
+          paymentType: 'wallet',
+          message: 'Wallet payment processed successfully' 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    
+    // Create a Stripe Checkout Session for card/external payments
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [

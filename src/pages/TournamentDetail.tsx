@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { CalendarDays, Trophy, Users, AlertCircle, Clock, MapPin, Check } from "lucide-react";
+import { CalendarDays, Trophy, Users, AlertCircle, Clock, MapPin, Check, Users2, Flame, Zap } from "lucide-react";
 import { tournaments } from "@/data/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import WalletPaymentDialog from "@/components/wallet/WalletPaymentDialog";
+import CountdownTimer from "@/components/tournaments/CountdownTimer";
 
 const TournamentDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,11 +41,19 @@ const TournamentDetail = () => {
   const [loading, setLoading] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
   const [showGameIdDialog, setShowGameIdDialog] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [gameUsername, setGameUsername] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
   
+  const getRegistrationEndDate = () => {
+    if (!tournament) return new Date();
+    const startDate = new Date(tournament.startDate);
+    const regEndDate = new Date(startDate);
+    regEndDate.setDate(startDate.getDate() - 1); // Registration closes 1 day before event
+    return regEndDate;
+  };
+  
   useEffect(() => {
-    // Find the tournament by ID
     const foundTournament = tournaments.find(t => t.id === id);
     
     if (foundTournament) {
@@ -59,7 +69,6 @@ const TournamentDetail = () => {
     
     setLoading(false);
     
-    // Check if user is already registered for this tournament
     if (user) {
       checkRegistrationStatus();
     }
@@ -69,7 +78,6 @@ const TournamentDetail = () => {
     if (!id || !user?.id) return;
     
     try {
-      // Use the any type to work around TypeScript errors with the database schema
       const { data, error } = await supabase
         .from('tournament_registrations' as any)
         .select('*')
@@ -108,41 +116,16 @@ const TournamentDetail = () => {
     }
     
     if (tournament.entryFee) {
-      // If tournament has an entry fee, start payment process
-      initiatePayment();
+      setShowGameIdDialog(true);
     } else {
-      // If tournament is free, show game ID input dialog directly
       setShowGameIdDialog(true);
     }
   };
   
   const initiatePayment = async () => {
     try {
-      // Extract numeric value from entryFee string (assuming format like "₹500")
-      const feeValue = parseInt(tournament.entryFee.replace(/[^0-9]/g, ''), 10);
-      
-      if (isNaN(feeValue)) {
-        throw new Error("Invalid entry fee amount");
-      }
-      
-      // Create payment session with Stripe
-      const result = await createPayment({
-        amount: feeValue * 100, // Convert to cents/paisa
-        currency: "inr",
-        description: `Entry fee for ${tournament.title}`,
-        successUrl: `${window.location.origin}/tournaments/${id}?payment_success=true`,
-        cancelUrl: `${window.location.origin}/tournaments/${id}?payment_cancelled=true`,
-        metadata: {
-          tournamentId: id,
-          userId: user?.id
-        }
-      });
-      
-      if (!result) {
-        throw new Error("Failed to create payment session");
-      }
-      
-      // Payment will redirect to Stripe's checkout page
+      setShowGameIdDialog(false);
+      setShowPaymentDialog(true);
     } catch (error) {
       console.error("Payment initiation error:", error);
       toast({
@@ -153,27 +136,16 @@ const TournamentDetail = () => {
     }
   };
   
-  // Check URL parameters for payment status on component mount
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const paymentSuccess = urlParams.get('payment_success');
-    
-    if (paymentSuccess === 'true') {
-      // If payment was successful, show game ID dialog
-      setShowGameIdDialog(true);
-      
-      // Clean up URL
-      window.history.replaceState({}, document.title, `/tournaments/${id}`);
-    }
-  }, []);
+  const handlePaymentConfirm = async () => {
+    setShowPaymentDialog(false);
+    handleCompleteRegistration();
+  };
   
-  const handleSubmitGameId = async () => {
-    if (!id || !user?.id) return;
-    
-    if (!gameUsername.trim()) {
+  const handleCompleteRegistration = async () => {
+    if (!id || !user?.id || !gameUsername.trim()) {
       toast({
-        title: "Game username required",
-        description: "Please enter your in-game username to complete registration.",
+        title: "Registration error",
+        description: "Missing required information to complete registration.",
         variant: "destructive"
       });
       return;
@@ -182,14 +154,20 @@ const TournamentDetail = () => {
     setSubmitLoading(true);
     
     try {
-      // Store registration in database using any type to work around TypeScript errors
+      let paymentAmount = 0;
+      if (tournament.entryFee) {
+        paymentAmount = parseInt(tournament.entryFee.replace(/[^0-9]/g, ''), 10);
+      }
+      
       const { error } = await supabase
         .from('tournament_registrations' as any)
         .insert({
           tournament_id: id,
           user_id: user?.id,
           game_username: gameUsername,
-          registration_date: new Date().toISOString()
+          registration_date: new Date().toISOString(),
+          payment_amount: paymentAmount || null,
+          payment_status: 'completed'
         } as any);
       
       if (error) throw error;
@@ -210,6 +188,34 @@ const TournamentDetail = () => {
       });
     } finally {
       setSubmitLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentSuccess = urlParams.get('payment_success');
+    
+    if (paymentSuccess === 'true') {
+      setShowGameIdDialog(true);
+      
+      window.history.replaceState({}, document.title, `/tournaments/${id}`);
+    }
+  }, []);
+  
+  const handleGameIdSubmit = () => {
+    if (!gameUsername.trim()) {
+      toast({
+        title: "Game username required",
+        description: "Please enter your in-game username to complete registration.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (tournament.entryFee) {
+      initiatePayment();
+    } else {
+      handleCompleteRegistration();
     }
   };
   
@@ -250,7 +256,6 @@ const TournamentDetail = () => {
       <Navbar />
       
       <div className="flex-1">
-        {/* Tournament Header */}
         <div className="relative h-[300px] md:h-[400px]">
           <img 
             src={tournament.image} 
@@ -341,8 +346,41 @@ const TournamentDetail = () => {
           </div>
         </div>
         
-        {/* Tournament Details */}
         <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            <div className="lg:col-span-3">
+              <CountdownTimer 
+                targetDate={getRegistrationEndDate()} 
+                label="Registration closes in"
+              />
+            </div>
+            <div>
+              <Card className="bg-esports-card border-gray-800 h-full">
+                <CardContent className="pt-6 h-full flex flex-col justify-center">
+                  <div className="flex items-center mb-2">
+                    <Flame className="text-esports-yellow h-5 w-5 mr-2" />
+                    <h3 className="font-semibold">Tournament Format</h3>
+                  </div>
+                  
+                  <div className="flex flex-col space-y-3 text-gray-300">
+                    <div className="flex justify-between">
+                      <span>Format:</span>
+                      <span className="font-medium text-white">{tournament.format}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Entry Fee:</span>
+                      <span className="font-medium text-white">{tournament.entryFee || "Free Entry"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Team Size:</span>
+                      <span className="font-medium text-white">{tournament.teamSize || "Solo"}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+          
           <Tabs defaultValue="overview" className="space-y-8">
             <TabsList className="grid w-full grid-cols-4 h-auto">
               <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -632,7 +670,6 @@ const TournamentDetail = () => {
         </div>
       </div>
       
-      {/* Game ID Dialog */}
       <Dialog open={showGameIdDialog} onOpenChange={setShowGameIdDialog}>
         <DialogContent className="bg-esports-card border-gray-800">
           <DialogHeader>
@@ -663,15 +700,25 @@ const TournamentDetail = () => {
               Cancel
             </Button>
             <Button 
-              onClick={handleSubmitGameId} 
+              onClick={handleGameIdSubmit} 
               disabled={submitLoading}
               className="bg-gradient-to-r from-esports-purple to-esports-blue hover:opacity-90"
             >
-              {submitLoading ? "Registering..." : "Complete Registration"}
+              {submitLoading ? "Registering..." : "Continue"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <WalletPaymentDialog
+        open={showPaymentDialog}
+        onOpenChange={setShowPaymentDialog}
+        tournamentName={tournament?.title || ""}
+        username={gameUsername}
+        entryFee={tournament?.entryFee || 0}
+        onConfirmPayment={handlePaymentConfirm}
+        onCancel={() => setShowPaymentDialog(false)}
+      />
       
       <Footer />
     </div>
