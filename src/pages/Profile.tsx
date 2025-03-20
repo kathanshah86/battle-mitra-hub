@@ -38,6 +38,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [showCreateProfile, setShowCreateProfile] = useState(false);
 
   // Check if viewing own profile
   const isOwnProfile = !profileId || (user && profileId === user.id);
@@ -67,8 +68,13 @@ const Profile = () => {
           
         if (profileError) {
           if (profileError.code === 'PGRST116') {
-            // Profile not found
-            setError("Profile not found");
+            // Profile not found, but if it's the user's own profile, show create form
+            if (isOwnProfile) {
+              setShowCreateProfile(true);
+              setError(null);
+            } else {
+              setError("Profile not found");
+            }
           } else {
             console.error("Error fetching profile:", profileError);
             setError("Error loading profile data");
@@ -104,7 +110,119 @@ const Profile = () => {
     if (!authLoading) {
       fetchProfile();
     }
-  }, [profileId, user, authLoading]);
+  }, [profileId, user, authLoading, isOwnProfile]);
+
+  // Function to handle profile creation
+  const handleCreateProfile = async (formData: FormData) => {
+    try {
+      setLoading(true);
+      
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to create a profile",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const username = formData.get('username') as string;
+      const bio = formData.get('bio') as string;
+      const gameExperience = formData.get('gameExperience') as string;
+      
+      const newProfile = {
+        id: user.id,
+        username: username || user.email?.split('@')[0] || "User",
+        bio: bio || "No bio yet",
+        game_experience: gameExperience || "Beginner",
+        avatar_url: null
+      };
+      
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert([newProfile]);
+        
+      if (insertError) {
+        throw insertError;
+      }
+      
+      toast({
+        title: "Profile created",
+        description: "Your profile has been created successfully!",
+      });
+      
+      setProfile(newProfile);
+      setShowCreateProfile(false);
+      
+    } catch (error: any) {
+      console.error("Error creating profile:", error);
+      toast({
+        title: "Error creating profile",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create Profile Form
+  if (showCreateProfile && isOwnProfile) {
+    return (
+      <div className="container mx-auto py-10 px-4 max-w-md">
+        <Card>
+          <CardHeader>
+            <CardTitle>Create Your Profile</CardTitle>
+            <CardDescription>
+              Fill out the information below to set up your profile
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              handleCreateProfile(formData);
+            }} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input 
+                  id="username" 
+                  name="username" 
+                  placeholder="Enter a username" 
+                  defaultValue={user?.email?.split('@')[0] || ""}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea 
+                  id="bio" 
+                  name="bio" 
+                  placeholder="Tell us about yourself..."
+                  rows={3}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="gameExperience">Gaming Experience</Label>
+                <Textarea 
+                  id="gameExperience" 
+                  name="gameExperience" 
+                  placeholder="Share your gaming background..."
+                  rows={3}
+                />
+              </div>
+              
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Creating Profile..." : "Create Profile"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Error state handling
   if (error) {
@@ -174,7 +292,7 @@ const Profile = () => {
         
         {isOwnProfile && (
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate('/settings')} size="sm">
+            <Button variant="outline" onClick={() => setActiveTab("settings")} size="sm">
               <Edit className="h-4 w-4 mr-1" />
               Edit Profile
             </Button>
@@ -282,7 +400,7 @@ const Profile = () => {
         </TabsContent>
         
         <TabsContent value="settings">
-          <UserSettings user={user} profile={profile} />
+          <UserSettings user={user} profile={profile} setProfile={setProfile} />
         </TabsContent>
       </Tabs>
       
@@ -496,8 +614,48 @@ const MyTournaments = ({ userId }: { userId: string }) => {
 };
 
 // User Settings Component for the settings tab
-const UserSettings = ({ user, profile }: { user: any, profile: any }) => {
+const UserSettings = ({ user, profile, setProfile }: { user: any, profile: any, setProfile: (profile: any) => void }) => {
   const [activeTab, setActiveTab] = useState("profile");
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  
+  const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const formData = new FormData(e.currentTarget);
+      const updatedProfile = {
+        username: formData.get('username') as string,
+        bio: formData.get('bio') as string,
+        game_experience: formData.get('experience') as string,
+      };
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update(updatedProfile)
+        .eq('id', profile.id);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setProfile({ ...profile, ...updatedProfile });
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully",
+      });
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      toast({
+        title: "Error updating profile",
+        description: error.message || "Failed to update profile",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   return (
     <div>
@@ -532,15 +690,15 @@ const UserSettings = ({ user, profile }: { user: any, profile: any }) => {
             <CardDescription>Update your profile information</CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleUpdateProfile}>
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
-                <Input id="username" defaultValue={profile?.username || ""} />
+                <Input id="username" name="username" defaultValue={profile?.username || ""} />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="bio">Bio</Label>
-                <Textarea id="bio" defaultValue={profile?.bio || ""} />
+                <Textarea id="bio" name="bio" defaultValue={profile?.bio || ""} />
               </div>
               
               <div className="space-y-2">
@@ -550,16 +708,19 @@ const UserSettings = ({ user, profile }: { user: any, profile: any }) => {
                     <AvatarImage src={profile?.avatar_url} alt={profile?.username || "User"} />
                     <AvatarFallback>{getInitials(profile)}</AvatarFallback>
                   </Avatar>
-                  <Input id="avatar" type="file" />
+                  <Input id="avatar" type="file" disabled />
+                  <p className="text-sm text-gray-500">(Avatar upload coming soon)</p>
                 </div>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="experience">Game Experience</Label>
-                <Textarea id="experience" defaultValue={profile?.game_experience || ""} />
+                <Textarea id="experience" name="experience" defaultValue={profile?.game_experience || ""} />
               </div>
               
-              <Button type="submit" className="mt-2">Save Changes</Button>
+              <Button type="submit" className="mt-2" disabled={loading}>
+                {loading ? "Saving..." : "Save Changes"}
+              </Button>
             </form>
           </CardContent>
         </Card>
