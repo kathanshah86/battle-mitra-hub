@@ -18,9 +18,18 @@ export const formatSocialLink = (url: string) => {
   // If it's a common social platform, extract the username
   if (formattedUrl.includes('twitter.com/') || formattedUrl.includes('x.com/')) {
     return '@' + formattedUrl.split('/').pop();
+  } else if (formattedUrl.includes('instagram.com/')) {
+    return '@' + formattedUrl.split('/').pop();
+  } else if (formattedUrl.includes('github.com/')) {
+    return '@' + formattedUrl.split('/').pop();
+  } else if (formattedUrl.includes('youtube.com/')) {
+    const channel = formattedUrl.split('/').pop();
+    return channel || 'YouTube';
   }
   
-  return formattedUrl;
+  // For other websites, just return the domain
+  const domain = formattedUrl.split('/')[0];
+  return domain;
 };
 
 // Create dummy social links if none provided

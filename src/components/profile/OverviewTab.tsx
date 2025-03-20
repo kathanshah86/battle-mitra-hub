@@ -1,8 +1,9 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Twitter, Instagram, Youtube, Globe, Github } from "lucide-react";
+import { Twitter, Instagram, Youtube, Globe, Github, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatSocialLink } from "@/utils/profile-utils";
 
 interface OverviewTabProps {
   profile: any;
@@ -18,7 +19,7 @@ const OverviewTab = ({ profile }: OverviewTabProps) => {
     } else if (url.includes('youtube.com')) {
       return <Youtube className="h-5 w-5 text-red-500" />;
     } else if (url.includes('github.com')) {
-      return <Github className="h-5 w-5 text-gray-800" />;
+      return <Github className="h-5 w-5 text-gray-800 dark:text-gray-200" />;
     } else {
       return <Globe className="h-5 w-5 text-purple-500" />;
     }
@@ -40,14 +41,14 @@ const OverviewTab = ({ profile }: OverviewTabProps) => {
         <div className="space-y-6">
           <div>
             <h4 className="font-semibold text-lg mb-2">Bio</h4>
-            <p className="text-gray-700">{profile?.bio || "hello my name is kathan"}</p>
+            <p className="text-gray-700 dark:text-gray-300">{profile?.bio || "hello my name is kathan"}</p>
           </div>
           
           <Separator />
           
           <div>
             <h4 className="font-semibold text-lg mb-2">Game Experience</h4>
-            <p className="text-gray-700">
+            <p className="text-gray-700 dark:text-gray-300">
               {profile?.game_experience || "1 year"}
             </p>
           </div>
@@ -57,23 +58,22 @@ const OverviewTab = ({ profile }: OverviewTabProps) => {
           <div>
             <h4 className="font-semibold text-lg mb-2">Social</h4>
             {socialLinks && socialLinks.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="flex flex-wrap gap-3">
                 {socialLinks.map((link: any, index: number) => (
-                  <Button
+                  <a
                     key={index}
-                    variant="outline"
-                    className="flex justify-start items-center gap-2 w-full"
-                    asChild
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-4 py-2 rounded-full transition-colors"
                   >
-                    <a href={link.url} target="_blank" rel="noopener noreferrer">
-                      {renderSocialIcon(link.url)}
-                      <span>{link.platform}</span>
-                    </a>
-                  </Button>
+                    {renderSocialIcon(link.url)}
+                    <span className="font-medium">{formatSocialLink(link.url)}</span>
+                  </a>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-600">No social links available</p>
+              <p className="text-gray-600 dark:text-gray-400">No social links available</p>
             )}
           </div>
         </div>
