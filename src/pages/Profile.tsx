@@ -16,6 +16,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 
+// Helper function to get initials from profile data
+const getInitials = (profile: any) => {
+  if (!profile) return "U";
+  return (profile.username || profile.id.substring(0, 2) || "U").substring(0, 2).toUpperCase();
+};
+
 const Profile = () => {
   const { id: profileId } = useParams();
   const { user, loading: authLoading } = useAuth();
@@ -135,12 +141,6 @@ const Profile = () => {
     );
   }
 
-  // Determine the initials for the avatar fallback
-  const getInitials = () => {
-    if (!profile) return "U";
-    return (profile.username || profile.id.substring(0, 2) || "U").substring(0, 2).toUpperCase();
-  };
-
   return (
     <div className="container mx-auto py-6 px-4 sm:px-6 max-w-6xl">
       {/* Profile Header */}
@@ -148,7 +148,7 @@ const Profile = () => {
         <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
           <AvatarImage src={profile?.avatar_url} alt={profile?.username || "User"} />
           <AvatarFallback className="text-lg bg-primary/10 text-primary">
-            {getInitials()}
+            {getInitials(profile)}
           </AvatarFallback>
         </Avatar>
         
@@ -548,7 +548,7 @@ const UserSettings = ({ user, profile }: { user: any, profile: any }) => {
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
                     <AvatarImage src={profile?.avatar_url} alt={profile?.username || "User"} />
-                    <AvatarFallback>{getInitials()}</AvatarFallback>
+                    <AvatarFallback>{getInitials(profile)}</AvatarFallback>
                   </Avatar>
                   <Input id="avatar" type="file" />
                 </div>
