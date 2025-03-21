@@ -25,6 +25,7 @@ import News from "./pages/News";
 import NewsDetail from "./pages/NewsDetail";
 import Wallet from "./pages/Wallet";
 import Support from "./pages/Support";
+import Community from "./pages/Community";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ function App() {
               <Route path="/news/:id" element={<NewsDetail />} />
               <Route path="/wallet" element={<Wallet />} />
               <Route path="/support" element={<Support />} />
+              <Route path="/community" element={<Community />} />
               <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
                 <Route index element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />

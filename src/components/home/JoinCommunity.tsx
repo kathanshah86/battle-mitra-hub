@@ -30,6 +30,9 @@ const JoinCommunity = () => {
               <p className="text-gray-400">
                 Find teammates, make friends, and build your network in the gaming community.
               </p>
+              <Button variant="link" asChild className="text-esports-purple mt-2 p-0">
+                <Link to="/community">Join Chat</Link>
+              </Button>
             </div>
             
             <div className="bg-esports-card bg-opacity-50 backdrop-blur-sm p-6 rounded-lg border border-gray-800 hover:border-esports-purple/50 transition-all duration-300">
@@ -42,6 +45,9 @@ const JoinCommunity = () => {
               <p className="text-gray-400">
                 Compete in tournaments with cash prizes, gaming gear, and more exclusive rewards.
               </p>
+              <Button variant="link" asChild className="text-esports-purple mt-2 p-0">
+                <Link to="/tournaments">View Tournaments</Link>
+              </Button>
             </div>
             
             <div className="bg-esports-card bg-opacity-50 backdrop-blur-sm p-6 rounded-lg border border-gray-800 hover:border-esports-purple/50 transition-all duration-300">
@@ -54,6 +60,9 @@ const JoinCommunity = () => {
               <p className="text-gray-400">
                 Compete against the best and learn from top players to enhance your gameplay.
               </p>
+              <Button variant="link" asChild className="text-esports-purple mt-2 p-0">
+                <Link to="/leaderboards">View Leaderboards</Link>
+              </Button>
             </div>
           </div>
           
@@ -62,7 +71,7 @@ const JoinCommunity = () => {
               <Link to="/signup">Create Account</Link>
             </Button>
             <Button asChild variant="outline" className="text-lg h-12 px-8 border-esports-purple text-white hover:bg-esports-purple/10">
-              <Link to="/tournaments">Browse Tournaments</Link>
+              <Link to="/community">Join Community</Link>
             </Button>
           </div>
         </div>

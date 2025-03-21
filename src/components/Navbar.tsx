@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search, Bell, Wallet, HelpCircle } from 'lucide-react';
+import { Menu, X, Search, Bell, Wallet, HelpCircle, MessagesSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { UserMenu } from '@/components/UserMenu';
 
@@ -36,6 +36,9 @@ const Navbar = () => {
           </Link>
           <Link to="/news" className="text-gray-300 hover:text-white transition-colors">
             News
+          </Link>
+          <Link to="/community" className="text-gray-300 hover:text-white transition-colors">
+            Community
           </Link>
         </div>
 
@@ -113,6 +116,13 @@ const Navbar = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               News
+            </Link>
+            <Link 
+              to="/community" 
+              className="text-gray-300 hover:text-white transition-colors py-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Community
             </Link>
             
             {user && (
