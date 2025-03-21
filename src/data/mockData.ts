@@ -1,4 +1,3 @@
-
 import { Tournament, Player, LiveMatch, News } from '@/types';
 
 export const tournaments: Tournament[] = [
@@ -97,6 +96,32 @@ export const tournaments: Tournament[] = [
     format: 'Invitational',
     organizer: 'COD Community',
     region: 'North America',
+  },
+  {
+    id: '7',
+    title: 'Free Fire Battle Royale Championship',
+    gameType: 'battle-royale',
+    image: 'https://images.unsplash.com/photo-1542751110-97427bbecf20?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
+    status: 'upcoming',
+    startDate: '2024-03-24',
+    endDate: '2024-03-26',
+    prizePool: '$15,000',
+    entryFee: '$10',
+    participantsCount: 45,
+    maxParticipants: 100,
+    format: 'Battle Royale',
+    organizer: 'Battle Mitra Official',
+    region: 'Global',
+    description: 'Join the ultimate Free Fire tournament and compete against the best players from around the world! Show your skills, strategy, and teamwork to win the grand prize.',
+    rules: [
+      'Players must be at least 16 years old',
+      'Teams must consist of 4 players',
+      'Custom room passwords will be shared 30 minutes before match',
+      'Point system: Kill Points (1 per kill) + Placement Points',
+      'All participants must join the official Discord server',
+      'No use of emulators allowed - mobile devices only',
+      'Players caught cheating will be permanently banned'
+    ],
   },
 ];
 
