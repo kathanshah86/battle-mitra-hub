@@ -13,6 +13,7 @@ interface CountdownTimerProps {
   showAlert?: boolean;
   tournamentId?: string;
   showRegisterButton?: boolean;
+  overrideHours?: number; // Add new prop to override the countdown with a specific hour value
 }
 
 const CountdownTimer = ({ 
@@ -21,7 +22,8 @@ const CountdownTimer = ({
   onComplete,
   showAlert = false,
   tournamentId,
-  showRegisterButton = false
+  showRegisterButton = false,
+  overrideHours
 }: CountdownTimerProps) => {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -32,39 +34,89 @@ const CountdownTimer = ({
   const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
-    const target = new Date(targetDate).getTime();
+    if (overrideHours !== undefined) {
+      // If override hours provided, use that instead of targetDate calculation
+      setTimeLeft({
+        days: 0,
+        hours: overrideHours,
+        minutes: 0,
+        seconds: 0,
+      });
+      
+      const timer = setInterval(() => {
+        setTimeLeft(prevTime => {
+          let newSeconds = prevTime.seconds - 1;
+          let newMinutes = prevTime.minutes;
+          let newHours = prevTime.hours;
+          let newDays = prevTime.days;
+          
+          if (newSeconds < 0) {
+            newSeconds = 59;
+            newMinutes -= 1;
+          }
+          
+          if (newMinutes < 0) {
+            newMinutes = 59;
+            newHours -= 1;
+          }
+          
+          if (newHours < 0) {
+            newHours = 23;
+            newDays -= 1;
+          }
+          
+          if (newDays === 0 && newHours === 0 && newMinutes === 0 && newSeconds === 0) {
+            if (onComplete) onComplete();
+            setIsComplete(true);
+            clearInterval(timer);
+          }
+          
+          return {
+            days: newDays,
+            hours: newHours,
+            minutes: newMinutes,
+            seconds: newSeconds
+          };
+        });
+      }, 1000);
+      
+      return () => clearInterval(timer);
+    } else {
+      // Original implementation using targetDate
+      const target = new Date(targetDate).getTime();
 
-    const calculateTimeLeft = () => {
-      const now = new Date().getTime();
-      const difference = target - now;
+      const calculateTimeLeft = () => {
+        const now = new Date().getTime();
+        const difference = target - now;
 
-      if (difference <= 0) {
-        setIsComplete(true);
-        if (onComplete) onComplete();
+        if (difference <= 0) {
+          setIsComplete(true);
+          if (onComplete) onComplete();
+          return {
+            days: 0,
+            hours: 0,
+            minutes: 0,
+            seconds: 0,
+          };
+        }
+
         return {
-          days: 0,
-          hours: 0,
-          minutes: 0,
-          seconds: 0,
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((difference % (1000 * 60)) / 1000),
         };
-      }
-
-      return {
-        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-        minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((difference % (1000 * 60)) / 1000),
       };
-    };
 
-    setTimeLeft(calculateTimeLeft());
-
-    const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
-    }, 1000);
 
-    return () => clearInterval(timer);
-  }, [targetDate, onComplete]);
+      const timer = setInterval(() => {
+        setTimeLeft(calculateTimeLeft());
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [targetDate, onComplete, overrideHours]);
 
   return (
     <Card className={`overflow-hidden rounded-xl border-none ${showAlert && !isComplete && timeLeft.days < 1 ? "bg-gradient-to-br from-red-900/30 to-black/80" : "bg-gradient-to-br from-esports-darker to-black/90"}`}>

@@ -252,6 +252,15 @@ export const liveMatches: LiveMatch[] = [
 export const news: News[] = [
   {
     id: '1',
+    title: 'New Free Fire Tournament Announced: Battle Royale Championship',
+    image: 'https://images.unsplash.com/photo-1542751110-97427bbecf20?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60',
+    category: 'Breaking News',
+    date: '2024-03-21',
+    author: 'Battle Mitra Team',
+    excerpt: 'Battle Mitra announces the Free Fire Battle Royale Championship starting March 24th with a prize pool of ₹15,000. Registration is now open!',
+  },
+  {
+    id: '2',
     title: 'New Valorant Agent Revealed: Abilities and Strategy',
     image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60',
     category: 'News',
@@ -260,7 +269,7 @@ export const news: News[] = [
     excerpt: 'Riot Games has revealed a new Valorant agent with unique abilities that could change the meta.',
   },
   {
-    id: '2',
+    id: '3',
     title: 'Apex Legends Season 10: All the Changes and New Features',
     image: 'https://images.unsplash.com/photo-1560253023-3ec5d502959f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60',
     category: 'Updates',
@@ -269,7 +278,7 @@ export const news: News[] = [
     excerpt: 'Season 10 of Apex Legends is here with a new legend, weapon, and map changes.',
   },
   {
-    id: '3',
+    id: '4',
     title: 'Top Esports Teams to Watch in 2023',
     image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60',
     category: 'Features',

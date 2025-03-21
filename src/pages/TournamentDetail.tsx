@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CalendarDays, Trophy, Users, AlertCircle, Clock, MapPin, Check, Users2, Flame, Zap } from "lucide-react";
@@ -261,6 +260,8 @@ const TournamentDetail = () => {
     );
   }
   
+  const shouldUse24HourCountdown = tournament?.id === '7';
+  
   return (
     <div className="min-h-screen bg-esports-dark flex flex-col">
       <Navbar />
@@ -366,12 +367,14 @@ const TournamentDetail = () => {
                   showAlert={isRegistrationEnding()}
                   showRegisterButton={true}
                   tournamentId={tournament.id}
+                  overrideHours={shouldUse24HourCountdown ? 24 : undefined}
                 />
               ) : (
                 <CountdownTimer 
                   targetDate={tournament.startDate} 
                   label="Tournament starts in"
                   showAlert={isRegistrationEnding()}
+                  overrideHours={shouldUse24HourCountdown ? 24 : undefined}
                 />
               )}
             </div>
