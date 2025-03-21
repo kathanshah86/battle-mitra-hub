@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search, Bell } from 'lucide-react';
+import { Menu, X, Search, Bell, Wallet, HelpCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { UserMenu } from '@/components/UserMenu';
 
@@ -44,9 +44,20 @@ const Navbar = () => {
           <button className="text-gray-300 hover:text-white">
             <Search className="h-5 w-5" />
           </button>
-          <button className="text-gray-300 hover:text-white">
-            <Bell className="h-5 w-5" />
-          </button>
+          
+          {user && (
+            <>
+              <Link to="/wallet" className="text-gray-300 hover:text-white">
+                <Wallet className="h-5 w-5" />
+              </Link>
+              <Link to="/support" className="text-gray-300 hover:text-white">
+                <HelpCircle className="h-5 w-5" />
+              </Link>
+              <button className="text-gray-300 hover:text-white">
+                <Bell className="h-5 w-5" />
+              </button>
+            </>
+          )}
           
           {user ? (
             <UserMenu />
@@ -103,6 +114,27 @@ const Navbar = () => {
             >
               News
             </Link>
+            
+            {user && (
+              <>
+                <Link 
+                  to="/wallet" 
+                  className="text-gray-300 hover:text-white transition-colors py-2 flex items-center"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Wallet className="h-5 w-5 mr-2" />
+                  Wallet
+                </Link>
+                <Link 
+                  to="/support" 
+                  className="text-gray-300 hover:text-white transition-colors py-2 flex items-center"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <HelpCircle className="h-5 w-5 mr-2" />
+                  Support
+                </Link>
+              </>
+            )}
             
             {user ? (
               <Button 

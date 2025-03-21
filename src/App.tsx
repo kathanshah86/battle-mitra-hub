@@ -21,6 +21,10 @@ import AdminSettings from "./pages/admin/Settings";
 import AdminSecurity from "./pages/admin/Security";
 import RequireAdmin from "./components/admin/RequireAdmin";
 import Profile from "./pages/Profile";
+import News from "./pages/News";
+import NewsDetail from "./pages/NewsDetail";
+import Wallet from "./pages/Wallet";
+import Support from "./pages/Support";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +47,10 @@ function App() {
               <Route path="/profile/:id" element={<Profile />} />
               <Route path="/my-tournaments" element={<Profile />} />
               <Route path="/settings" element={<Profile />} />
+              <Route path="/news" element={<News />} />
+              <Route path="/news/:id" element={<NewsDetail />} />
+              <Route path="/wallet" element={<Wallet />} />
+              <Route path="/support" element={<Support />} />
               <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
                 <Route index element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
