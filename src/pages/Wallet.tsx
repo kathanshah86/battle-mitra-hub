@@ -1,18 +1,17 @@
-
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { WalletPaymentDialog } from "@/components/wallet/WalletPaymentDialog";
-import { PaymentMethodSelector } from "@/components/wallet/PaymentMethodSelector";
+import WalletPaymentDialog from "@/components/wallet/WalletPaymentDialog";
+import PaymentMethodSelector from "@/components/wallet/PaymentMethodSelector";
 import { 
   Wallet, 
   CreditCard, 
   ArrowUpRight, 
   ArrowDownLeft, 
-  Indian, 
+  IndianRupee, 
   AlertCircle 
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -216,7 +215,11 @@ const WalletPage = () => {
         <WalletPaymentDialog
           open={showAddFunds}
           onOpenChange={setShowAddFunds}
-          onSubmit={handleAddFunds}
+          tournamentName="Add Funds"
+          username={user?.email || ""}
+          entryFee={0}
+          onConfirmPayment={() => handleAddFunds(100)}
+          onCancel={() => setShowAddFunds(false)}
         />
       )}
     </>
