@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tournament } from "@/types";
 import { Clock } from "lucide-react";
+import CountdownTimer from "./CountdownTimer";
 
 interface TournamentCardProps {
   tournament: Tournament;

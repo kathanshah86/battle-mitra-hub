@@ -357,13 +357,23 @@ const TournamentDetail = () => {
         </div>
         
         <div className="container mx-auto px-4 py-8">
-          {tournament.status === "upcoming" && !isRegistered && (
-            <div className="mb-6">
-              <CountdownTimer 
-                targetDate={getRegistrationEndDate()} 
-                label="Registration closes in"
-                showAlert={isRegistrationEnding()}
-              />
+          {tournament.status === "upcoming" && (
+            <div className="mb-6 max-w-xl mx-auto">
+              {!isRegistered ? (
+                <CountdownTimer 
+                  targetDate={tournament.startDate}
+                  label="Tournament starts in"
+                  showAlert={isRegistrationEnding()}
+                  showRegisterButton={true}
+                  tournamentId={tournament.id}
+                />
+              ) : (
+                <CountdownTimer 
+                  targetDate={tournament.startDate} 
+                  label="Tournament starts in"
+                  showAlert={isRegistrationEnding()}
+                />
+              )}
             </div>
           )}
           
