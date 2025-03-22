@@ -24,6 +24,15 @@ export const UserMenu = () => {
     ? user.email.substring(0, 2).toUpperCase() 
     : 'U';
     
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+    
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
@@ -74,10 +83,7 @@ export const UserMenu = () => {
         
         <DropdownMenuItem 
           className="cursor-pointer text-destructive focus:text-destructive" 
-          onClick={() => {
-            signOut();
-            setIsOpen(false);
-          }}
+          onClick={handleLogout}
         >
           <LogOut className="mr-2 h-4 w-4" />
           Log out
