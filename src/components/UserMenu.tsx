@@ -13,10 +13,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, LogOut, Settings, Trophy, LayoutDashboard, UserCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export const UserMenu = () => {
   const { user, signOut, isAdmin } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const { toast } = useToast();
   
   if (!user) return null;
   
@@ -27,9 +29,18 @@ export const UserMenu = () => {
   const handleLogout = async () => {
     try {
       await signOut();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account",
+      });
       setIsOpen(false);
     } catch (error) {
       console.error('Logout failed:', error);
+      toast({
+        title: "Logout failed",
+        description: "There was a problem logging you out",
+        variant: "destructive",
+      });
     }
   };
     
