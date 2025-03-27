@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CalendarDays, Trophy, Users, AlertCircle, Clock, MapPin, Check, Users2, Flame, Zap } from "lucide-react";
@@ -88,10 +89,10 @@ const TournamentDetail = () => {
     
     try {
       const { data, error } = await supabase
-        .from('tournament_registrations' as any)
+        .from('tournament_registrations')
         .select('*')
         .eq('tournament_id', id)
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .single();
       
       if (error && error.code !== 'PGRST116') {
@@ -99,7 +100,12 @@ const TournamentDetail = () => {
         return;
       }
       
-      setIsRegistered(!!data);
+      if (data) {
+        setIsRegistered(true);
+        console.log("User is already registered for this tournament:", data);
+      } else {
+        setIsRegistered(false);
+      }
     } catch (error) {
       console.error("Error checking registration:", error);
     }
@@ -169,15 +175,15 @@ const TournamentDetail = () => {
       }
       
       const { error } = await supabase
-        .from('tournament_registrations' as any)
+        .from('tournament_registrations')
         .insert({
           tournament_id: id,
-          user_id: user?.id,
+          user_id: user.id,
           game_username: gameUsername,
           registration_date: new Date().toISOString(),
           payment_amount: paymentAmount || null,
           payment_status: 'completed'
-        } as any);
+        });
       
       if (error) throw error;
       
