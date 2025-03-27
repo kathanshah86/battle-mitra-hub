@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
@@ -18,15 +18,26 @@ type AuthFormValues = {
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { user, signIn, signUp } = useAuth();
+  const { user, signIn, signUp, isAdmin } = useAuth();
   const navigate = useNavigate();
   
   const loginForm = useForm<AuthFormValues>();
   const registerForm = useForm<AuthFormValues>();
 
-  // If already logged in, redirect to home
+  // If already logged in, redirect appropriately
+  useEffect(() => {
+    if (user) {
+      if (isAdmin) {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/');
+      }
+    }
+  }, [user, isAdmin, navigate]);
+
+  // If already logged in, don't render the auth page
   if (user) {
-    return <Navigate to="/" />;
+    return null;
   }
 
   const handleLogin = async (data: AuthFormValues) => {

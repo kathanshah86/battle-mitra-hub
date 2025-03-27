@@ -1,14 +1,13 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search, Bell, Wallet, HelpCircle, MessagesSquare } from 'lucide-react';
+import { Menu, X, Search, Bell, Wallet, HelpCircle, MessagesSquare, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { UserMenu } from '@/components/UserMenu';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 bg-esports-darker/90 backdrop-blur-md border-b border-gray-800">
@@ -40,6 +39,13 @@ const Navbar = () => {
           <Link to="/community" className="text-gray-300 hover:text-white transition-colors">
             Community
           </Link>
+          
+          {/* Admin Panel Link for Admins */}
+          {isAdmin && (
+            <Link to="/admin/dashboard" className="text-esports-purple hover:text-esports-purple-light transition-colors font-medium">
+              Admin Panel
+            </Link>
+          )}
         </div>
 
         {/* Action Buttons */}
@@ -124,6 +130,18 @@ const Navbar = () => {
             >
               Community
             </Link>
+            
+            {/* Admin Panel Link for Admins */}
+            {isAdmin && (
+              <Link 
+                to="/admin/dashboard" 
+                className="text-esports-purple hover:text-esports-purple-light transition-colors py-2 flex items-center font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <LayoutDashboard className="h-5 w-5 mr-2" />
+                Admin Panel
+              </Link>
+            )}
             
             {user && (
               <>
