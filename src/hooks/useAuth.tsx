@@ -25,10 +25,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Function to check if user is admin
+  const checkAdminRole = async (userId: string) => {
+    try {
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .single();
+        
+      if (!roleError && roleData) {
+        console.log('Admin role verified for user:', userId);
+        setIsAdmin(true);
+        return true;
+      } else {
+        console.log('User is not an admin:', userId);
+        setIsAdmin(false);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error checking admin role:', error);
+      setIsAdmin(false);
+      return false;
+    }
+  };
+
   useEffect(() => {
     // Set up the initial session and user
     const getInitialSession = async () => {
       try {
+        setLoading(true);
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -40,17 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(data.session?.user ?? null);
         
         if (data.session?.user) {
-          // Check if user is admin
-          const { data: roleData, error: roleError } = await supabase
-            .from('user_roles')
-            .select('*')
-            .eq('user_id', data.session.user.id)
-            .eq('role', 'admin')
-            .single();
-            
-          if (!roleError && roleData) {
-            setIsAdmin(true);
-          }
+          await checkAdminRole(data.session.user.id);
         }
       } catch (error) {
         console.error('Error in getInitialSession:', error);
@@ -64,24 +81,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Set up a subscription for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        console.log('Auth state changed:', _event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
         
         if (session?.user) {
-          // Check if user is admin
-          const { data: roleData, error: roleError } = await supabase
-            .from('user_roles')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .eq('role', 'admin')
-            .single();
-            
-          if (!roleError && roleData) {
-            setIsAdmin(true);
-          } else {
-            setIsAdmin(false);
-          }
+          await checkAdminRole(session.user.id);
         } else {
           setIsAdmin(false);
         }
@@ -95,24 +100,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      console.log('Attempting to sign in:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
+        console.error('Sign in error:', error);
         throw error;
       }
       
-      toast({
-        title: "Successfully signed in",
-        description: "Welcome back!",
-      });
-      
-      navigate('/');
+      if (data?.user) {
+        console.log('User signed in successfully:', data.user.email);
+        const isUserAdmin = await checkAdminRole(data.user.id);
+        
+        toast({
+          title: "Successfully signed in",
+          description: "Welcome back!",
+        });
+        
+        // Navigate based on role
+        if (isUserAdmin) {
+          console.log('Redirecting admin to dashboard');
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/');
+        }
+      }
     } catch (error: any) {
+      console.error('Sign in process failed:', error);
       toast({
         title: "Sign in failed",
         description: error.message,
         variant: "destructive",
       });
+      throw error; // Rethrow to allow component to handle it
     }
   };
 
@@ -140,6 +160,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: error.message,
         variant: "destructive",
       });
+      throw error;
     }
   };
 
@@ -151,6 +172,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
       
+      // Clear admin state
+      setIsAdmin(false);
       navigate('/');
     } catch (error: any) {
       toast({
@@ -158,6 +181,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: error.message,
         variant: "destructive",
       });
+      throw error;
     }
   };
 

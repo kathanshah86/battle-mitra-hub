@@ -60,21 +60,25 @@ export const UserMenu = () => {
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         
+        {/* Admin Panel link - moved to top of menu for admin users */}
+        {isAdmin && (
+          <>
+            <DropdownMenuItem asChild>
+              <Link to="/admin/dashboard" className="cursor-pointer flex w-full items-center bg-esports-purple/10 text-esports-purple font-medium" onClick={() => setIsOpen(false)}>
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                Admin Panel
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
+        
         <DropdownMenuItem asChild>
           <Link to="/profile" className="cursor-pointer flex w-full items-center" onClick={() => setIsOpen(false)}>
             <UserCircle className="mr-2 h-4 w-4" />
             Profile
           </Link>
         </DropdownMenuItem>
-        
-        {isAdmin && (
-          <DropdownMenuItem asChild>
-            <Link to="/admin/dashboard" className="cursor-pointer flex w-full items-center text-esports-purple font-medium" onClick={() => setIsOpen(false)}>
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              Admin Panel
-            </Link>
-          </DropdownMenuItem>
-        )}
         
         <DropdownMenuItem asChild>
           <Link to="/my-tournaments" className="cursor-pointer flex w-full items-center" onClick={() => setIsOpen(false)}>

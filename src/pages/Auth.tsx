@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams } from 'react-router-dom';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2 } from 'lucide-react';
 
 type AuthFormValues = {
   email: string;
@@ -25,6 +27,7 @@ const Auth = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'login';
+  const [loginError, setLoginError] = useState<string | null>(null);
   
   const loginForm = useForm<AuthFormValues>({
     defaultValues: {
@@ -57,12 +60,18 @@ const Auth = () => {
 
   const handleLogin = async (data: AuthFormValues) => {
     setIsLoading(true);
+    setLoginError(null);
     try {
       await signIn(data.email, data.password);
       
       // Admin login checks are now handled in the useAuth hook and useEffect above
-      
-    } catch (error) {
+      toast({
+        title: "Login successful",
+        description: "You are now logged in",
+      });
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setLoginError(error.message || "Login failed. Please check your credentials.");
       toast({
         title: "Login failed",
         description: "Please check your email and password and try again.",
@@ -116,12 +125,19 @@ const Auth = () => {
                 </CardHeader>
                 
                 <CardContent className="space-y-4">
+                  {loginError && (
+                    <Alert variant="destructive" className="mb-4">
+                      <AlertDescription>{loginError}</AlertDescription>
+                    </Alert>
+                  )}
+                  
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email</Label>
                     <Input
                       id="login-email"
                       type="email"
                       placeholder="your.email@example.com"
+                      autoComplete="email"
                       {...loginForm.register('email', { required: true })}
                     />
                   </div>
@@ -137,6 +153,7 @@ const Auth = () => {
                       id="login-password"
                       type="password"
                       placeholder="••••••••"
+                      autoComplete="current-password"
                       {...loginForm.register('password', { required: true })}
                     />
                   </div>
@@ -144,7 +161,14 @@ const Auth = () => {
                 
                 <CardFooter>
                   <Button className="w-full" type="submit" disabled={isLoading}>
-                    {isLoading ? 'Logging in...' : 'Login'}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Logging in...
+                      </>
+                    ) : (
+                      'Login'
+                    )}
                   </Button>
                 </CardFooter>
               </form>
@@ -166,6 +190,7 @@ const Auth = () => {
                       id="register-email"
                       type="email"
                       placeholder="your.email@example.com"
+                      autoComplete="email"
                       {...registerForm.register('email', { required: true })}
                     />
                   </div>
@@ -176,6 +201,7 @@ const Auth = () => {
                       id="register-password"
                       type="password"
                       placeholder="••••••••"
+                      autoComplete="new-password"
                       {...registerForm.register('password', { required: true, minLength: 6 })}
                     />
                     <p className="text-xs text-muted-foreground">
@@ -186,7 +212,14 @@ const Auth = () => {
                 
                 <CardFooter>
                   <Button className="w-full" type="submit" disabled={isLoading}>
-                    {isLoading ? 'Creating account...' : 'Create account'}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating account...
+                      </>
+                    ) : (
+                      'Create account'
+                    )}
                   </Button>
                 </CardFooter>
               </form>
