@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, LogOut, Settings, Trophy, LayoutDashboard, UserCircle } from 'lucide-react';
+import { LogOut, Settings, Trophy, LayoutDashboard, UserCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export const UserMenu = () => {
@@ -69,7 +69,7 @@ export const UserMenu = () => {
         
         {isAdmin && (
           <DropdownMenuItem asChild>
-            <Link to="/admin/dashboard" className="cursor-pointer flex w-full items-center" onClick={() => setIsOpen(false)}>
+            <Link to="/admin/dashboard" className="cursor-pointer flex w-full items-center text-esports-purple font-medium" onClick={() => setIsOpen(false)}>
               <LayoutDashboard className="mr-2 h-4 w-4" />
               Admin Panel
             </Link>

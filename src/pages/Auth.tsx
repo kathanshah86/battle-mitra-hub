@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useForm } from 'react-hook-form';
+import { useToast } from '@/hooks/use-toast';
+import { useSearchParams } from 'react-router-dom';
 
 type AuthFormValues = {
   email: string;
@@ -20,9 +22,22 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { user, signIn, signUp, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get('tab') || 'login';
   
-  const loginForm = useForm<AuthFormValues>();
-  const registerForm = useForm<AuthFormValues>();
+  const loginForm = useForm<AuthFormValues>({
+    defaultValues: {
+      email: '',
+      password: ''
+    }
+  });
+  const registerForm = useForm<AuthFormValues>({
+    defaultValues: {
+      email: '',
+      password: ''
+    }
+  });
 
   // If already logged in, redirect appropriately
   useEffect(() => {
@@ -42,14 +57,41 @@ const Auth = () => {
 
   const handleLogin = async (data: AuthFormValues) => {
     setIsLoading(true);
-    await signIn(data.email, data.password);
-    setIsLoading(false);
+    try {
+      await signIn(data.email, data.password);
+      
+      // Admin login checks are now handled in the useAuth hook and useEffect above
+      
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: "Please check your email and password and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRegister = async (data: AuthFormValues) => {
     setIsLoading(true);
-    await signUp(data.email, data.password);
-    setIsLoading(false);
+    try {
+      await signUp(data.email, data.password);
+      
+      toast({
+        title: "Registration successful",
+        description: "Please check your email for a confirmation link.",
+      });
+      
+    } catch (error: any) {
+      toast({
+        title: "Registration failed",
+        description: error.message || "An error occurred during registration.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -58,7 +100,7 @@ const Auth = () => {
       
       <main className="flex-1 flex items-center justify-center bg-gradient-to-b from-background to-background/80 py-12">
         <Card className="w-full max-w-md shadow-lg">
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
