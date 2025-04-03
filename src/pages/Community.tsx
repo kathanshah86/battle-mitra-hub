@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
@@ -9,67 +9,10 @@ import { Link } from "react-router-dom";
 import ChatRoomList from "@/components/community/ChatRoomList";
 import ChatRoom from "@/components/community/ChatRoom";
 import OnlineUsers from "@/components/community/OnlineUsers";
+import { chatService, ChatRoom as ChatRoomType } from "@/services/chatService";
+import { useToast } from "@/hooks/use-toast";
 
-// Mock data
-const mockChatRooms = [
-  { id: "general", name: "General", type: "general" as const, unread: 3 },
-  { id: "tournaments", name: "Tournament Discussion", type: "general" as const },
-  { id: "teams", name: "Find Team", type: "team" as const },
-  { id: "bgmi-tactics", name: "BGMI Tactics", type: "game" as const, unread: 1 },
-  { id: "feedback", name: "Site Feedback", type: "general" as const },
-];
-
-const mockMessages = [
-  {
-    id: "msg1",
-    content: "Hi everyone! I'm new here, looking forward to joining some tournaments.",
-    timestamp: new Date(Date.now() - 3600000 * 5),
-    user: {
-      id: "user1",
-      name: "Rajesh",
-      avatarUrl: "/placeholder.svg"
-    },
-    likes: 5,
-    replies: 2
-  },
-  {
-    id: "msg2",
-    content: "Welcome! We have a Free Fire tournament starting soon, you should check it out.",
-    timestamp: new Date(Date.now() - 3600000 * 4),
-    user: {
-      id: "user2",
-      name: "Priya",
-      avatarUrl: "/placeholder.svg"
-    },
-    likes: 3,
-    replies: 1
-  },
-  {
-    id: "msg3",
-    content: "Does anyone here play BGMI? I'm looking for squad members for the upcoming championship.",
-    timestamp: new Date(Date.now() - 3600000 * 2),
-    user: {
-      id: "user3",
-      name: "Vikram",
-      avatarUrl: "/placeholder.svg"
-    },
-    likes: 7,
-    replies: 4
-  },
-  {
-    id: "msg4",
-    content: "The last CODM tournament was amazing. Did you guys see that final match?",
-    timestamp: new Date(Date.now() - 3600000),
-    user: {
-      id: "user4",
-      name: "Amit",
-      avatarUrl: "/placeholder.svg"
-    },
-    likes: 10,
-    replies: 3
-  }
-];
-
+// Mock data for online users until we implement user presence
 const mockOnlineUsers = [
   { id: "user1", name: "Rajesh", status: "online" as const, game: "BGMI" },
   { id: "user2", name: "Priya", status: "online" as const },
@@ -83,8 +26,37 @@ const mockOnlineUsers = [
 
 const Community = () => {
   const { user } = useAuth();
-  const [activeChat, setActiveChat] = useState(mockChatRooms[0]);
+  const [chatRooms, setChatRooms] = useState<ChatRoomType[]>([]);
+  const [activeChat, setActiveChat] = useState<ChatRoomType | null>(null);
   const [showOnlineUsers, setShowOnlineUsers] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchChatRooms = async () => {
+      try {
+        setLoading(true);
+        const rooms = await chatService.getChatRooms();
+        setChatRooms(rooms);
+        
+        // Set the first room as active by default
+        if (rooms.length > 0 && !activeChat) {
+          setActiveChat(rooms[0]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch chat rooms:", error);
+        toast({
+          title: "Error loading chat rooms",
+          description: "Please try again later",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChatRooms();
+  }, []);
 
   if (!user) {
     return (
@@ -121,23 +93,34 @@ const Community = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 h-[calc(100vh-220px)] rounded-lg overflow-hidden border border-gray-800">
             {/* Chat Room List - Left Sidebar */}
             <div className="lg:col-span-2 h-full">
-              <ChatRoomList 
-                rooms={mockChatRooms} 
-                onSelectRoom={(roomId) => {
-                  const room = mockChatRooms.find(r => r.id === roomId);
-                  if (room) setActiveChat(room);
-                }}
-                activeChatId={activeChat.id}
-              />
+              {loading ? (
+                <div className="h-full flex items-center justify-center bg-esports-darker">
+                  <p className="text-gray-400">Loading rooms...</p>
+                </div>
+              ) : (
+                <ChatRoomList 
+                  rooms={chatRooms} 
+                  onSelectRoom={(roomId) => {
+                    const room = chatRooms.find(r => r.id === roomId);
+                    if (room) setActiveChat(room);
+                  }}
+                  activeChatId={activeChat?.id || ""}
+                />
+              )}
             </div>
             
             {/* Main Chat Area */}
             <div className="lg:col-span-7 h-full">
-              <ChatRoom 
-                roomId={activeChat.id}
-                roomName={activeChat.name}
-                initialMessages={mockMessages}
-              />
+              {!activeChat ? (
+                <div className="h-full flex items-center justify-center bg-esports-card">
+                  <p className="text-gray-400">Select a chat room to start messaging</p>
+                </div>
+              ) : (
+                <ChatRoom 
+                  roomId={activeChat.id}
+                  roomName={activeChat.name}
+                />
+              )}
             </div>
             
             {/* Online Users - Right Sidebar */}

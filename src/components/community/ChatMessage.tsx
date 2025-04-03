@@ -4,34 +4,36 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ThumbsUp, MessageSquare, Flag } from "lucide-react";
+import { ChatMessage as ChatMessageType } from "@/services/chatService";
+import { formatDistanceToNow } from "date-fns";
 
 interface ChatMessageProps {
-  message: {
-    id: string;
-    content: string;
-    timestamp: Date;
-    user: {
-      id: string;
-      name: string;
-      avatarUrl?: string;
-    };
-    likes: number;
-    replies: number;
-  };
+  message: ChatMessageType;
   onReply: (messageId: string) => void;
+  onLike?: (messageId: string, liked: boolean) => void;
 }
 
-const ChatMessage = ({ message, onReply }: ChatMessageProps) => {
+const ChatMessage = ({ message, onReply, onLike }: ChatMessageProps) => {
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(message.likes);
 
   const handleLike = () => {
-    if (!liked) {
-      setLikeCount(prev => prev + 1);
-      setLiked(true);
-    } else {
-      setLikeCount(prev => prev - 1);
-      setLiked(false);
+    if (onLike) {
+      const newLiked = !liked;
+      setLiked(newLiked);
+      onLike(message.id, newLiked);
+    }
+  };
+
+  const getInitials = (name?: string) => {
+    if (!name) return "U";
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const formatTime = (dateString: string) => {
+    try {
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+    } catch (e) {
+      return "some time ago";
     }
   };
 
@@ -39,17 +41,17 @@ const ChatMessage = ({ message, onReply }: ChatMessageProps) => {
     <Card className="p-4 bg-esports-card border-gray-800 mb-4">
       <div className="flex gap-3">
         <Avatar className="h-10 w-10">
-          <AvatarImage src={message.user.avatarUrl} alt={message.user.name} />
+          <AvatarImage src={message.user?.avatar_url} alt={message.user?.name || ''} />
           <AvatarFallback className="bg-esports-purple text-white">
-            {message.user.name.substring(0, 2).toUpperCase()}
+            {getInitials(message.user?.name)}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-semibold text-white">{message.user.name}</p>
+              <p className="font-semibold text-white">{message.user?.name || 'Unknown User'}</p>
               <p className="text-xs text-gray-400">
-                {message.timestamp.toLocaleString()}
+                {formatTime(message.created_at)}
               </p>
             </div>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
@@ -68,7 +70,7 @@ const ChatMessage = ({ message, onReply }: ChatMessageProps) => {
               onClick={handleLike}
             >
               <ThumbsUp className="h-4 w-4" />
-              <span>{likeCount}</span>
+              <span>{message.likes || 0}</span>
             </Button>
             <Button
               variant="ghost"
@@ -77,7 +79,7 @@ const ChatMessage = ({ message, onReply }: ChatMessageProps) => {
               onClick={() => onReply(message.id)}
             >
               <MessageSquare className="h-4 w-4" />
-              <span>{message.replies}</span>
+              <span>Reply</span>
             </Button>
           </div>
         </div>

@@ -9,6 +9,128 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          deleted: boolean | null
+          id: string
+          likes: number | null
+          metadata: Json | null
+          reply_to: string | null
+          room_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          deleted?: boolean | null
+          id?: string
+          likes?: number | null
+          metadata?: Json | null
+          reply_to?: string | null
+          room_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          deleted?: boolean | null
+          id?: string
+          likes?: number | null
+          metadata?: Json | null
+          reply_to?: string | null
+          room_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_rooms: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          metadata: Json | null
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          name: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      message_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          reaction: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          reaction: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          reaction?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -36,6 +158,74 @@ export type Database = {
           id?: string
           updated_at?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      room_members: {
+        Row: {
+          joined_at: string
+          role: string | null
+          room_id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          role?: string | null
+          room_id: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          role?: string | null
+          room_id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_members_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_finder: {
+        Row: {
+          availability: Json
+          created_at: string
+          description: string | null
+          game: string
+          id: string
+          skill_level: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          availability: Json
+          created_at?: string
+          description?: string | null
+          game: string
+          id?: string
+          skill_level: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          availability?: Json
+          created_at?: string
+          description?: string | null
+          game?: string
+          id?: string
+          skill_level?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -114,6 +304,16 @@ export type Database = {
         Args: {
           user_id: string
           role_name: string
+        }
+        Returns: boolean
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_room_moderator: {
+        Args: {
+          room_id: string
         }
         Returns: boolean
       }
