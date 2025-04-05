@@ -71,13 +71,20 @@ export const chatService = {
     }
     
     return data?.map(item => {
-      const userProfile = item.profiles;
-      const username = userProfile && typeof userProfile === 'object' && 'username' in userProfile 
-        ? String(userProfile.username || '') 
-        : 'Unknown User';
-      const avatarUrl = userProfile && typeof userProfile === 'object' && 'avatar_url' in userProfile 
-        ? String(userProfile.avatar_url || '') 
-        : '';
+      // Safely extract profile data with explicit null checks
+      let username = 'Unknown User';
+      let avatarUrl = '';
+      
+      if (item.profiles !== null && 
+          item.profiles !== undefined && 
+          typeof item.profiles === 'object') {
+        if ('username' in item.profiles && item.profiles.username) {
+          username = String(item.profiles.username);
+        }
+        if ('avatar_url' in item.profiles && item.profiles.avatar_url) {
+          avatarUrl = String(item.profiles.avatar_url);
+        }
+      }
       
       return {
         ...item,
@@ -119,14 +126,20 @@ export const chatService = {
       throw error;
     }
     
-    // Transform the data to match the ChatMessage interface
-    const userProfile = data.profiles;
-    const username = userProfile && typeof userProfile === 'object' && 'username' in userProfile 
-      ? String(userProfile.username || '') 
-      : 'Unknown User';
-    const avatarUrl = userProfile && typeof userProfile === 'object' && 'avatar_url' in userProfile 
-      ? String(userProfile.avatar_url || '') 
-      : '';
+    // Transform the data to match the ChatMessage interface with safe null checks
+    let username = 'Unknown User';
+    let avatarUrl = '';
+    
+    if (data.profiles !== null && 
+        data.profiles !== undefined && 
+        typeof data.profiles === 'object') {
+      if ('username' in data.profiles && data.profiles.username) {
+        username = String(data.profiles.username);
+      }
+      if ('avatar_url' in data.profiles && data.profiles.avatar_url) {
+        avatarUrl = String(data.profiles.avatar_url);
+      }
+    }
     
     return {
       ...data,
