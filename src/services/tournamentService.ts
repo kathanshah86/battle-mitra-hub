@@ -17,19 +17,35 @@ export const tournamentService = {
   async checkRegistration(tournamentId: string, userId: string): Promise<boolean> {
     if (!userId) return false;
     
-    const { data, error } = await supabase
+    // First check the BGMI tournament registrations table
+    const { data: bgmiData, error: bgmiError } = await supabase
       .from('bgmi_tournament_registrations')
       .select('id')
       .eq('tournament_id', tournamentId)
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
     
-    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows returned
-      console.error('Error checking registration:', error);
-      throw error;
+    if (bgmiError && bgmiError.code !== 'PGRST116') { // PGRST116 means no rows returned
+      console.error('Error checking BGMI registration:', bgmiError);
     }
     
-    return !!data;
+    if (bgmiData) {
+      return true;
+    }
+    
+    // Then check the general tournament registrations table
+    const { data: generalData, error: generalError } = await supabase
+      .from('tournament_registrations')
+      .select('id')
+      .eq('tournament_id', tournamentId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (generalError && generalError.code !== 'PGRST116') {
+      console.error('Error checking general registration:', generalError);
+    }
+    
+    return !!generalData;
   },
   
   // Register a user for a tournament
@@ -44,15 +60,39 @@ export const tournamentService = {
       throw new Error('You are already registered for this tournament');
     }
     
+    // For BGMI tournaments (ID 7), use the bgmi_tournament_registrations table
+    if (tournamentId === '7') {
+      const registration = {
+        tournament_id: tournamentId,
+        user_id: userId,
+        game_username: gameUsername,
+        status: 'confirmed'
+      };
+      
+      const { data, error } = await supabase
+        .from('bgmi_tournament_registrations')
+        .insert(registration)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error registering for BGMI tournament:', error);
+        throw error;
+      }
+      
+      return data as TournamentRegistration;
+    } 
+    
+    // For all other tournaments, use the tournament_registrations table
     const registration = {
       tournament_id: tournamentId,
       user_id: userId,
       game_username: gameUsername,
-      status: 'confirmed'
+      payment_status: 'completed'
     };
     
     const { data, error } = await supabase
-      .from('bgmi_tournament_registrations')
+      .from('tournament_registrations')
       .insert(registration)
       .select()
       .single();
@@ -67,8 +107,31 @@ export const tournamentService = {
   
   // Get all registered users for a tournament
   async getRegistrations(tournamentId: string): Promise<TournamentRegistration[]> {
+    // For BGMI tournaments
+    if (tournamentId === '7') {
+      const { data, error } = await supabase
+        .from('bgmi_tournament_registrations')
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `)
+        .eq('tournament_id', tournamentId)
+        .order('registration_date', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching BGMI tournament registrations:', error);
+        throw error;
+      }
+      
+      return data as unknown as TournamentRegistration[] || [];
+    }
+    
+    // For all other tournaments
     const { data, error } = await supabase
-      .from('bgmi_tournament_registrations')
+      .from('tournament_registrations')
       .select(`
         *,
         profiles:user_id (
@@ -91,17 +154,34 @@ export const tournamentService = {
   async getUserRegistrations(userId: string): Promise<TournamentRegistration[]> {
     if (!userId) return [];
     
-    const { data, error } = await supabase
+    // First get BGMI registrations
+    const { data: bgmiData, error: bgmiError } = await supabase
       .from('bgmi_tournament_registrations')
       .select('*')
       .eq('user_id', userId)
       .order('registration_date', { ascending: false });
     
-    if (error) {
-      console.error('Error fetching user registrations:', error);
-      throw error;
+    if (bgmiError) {
+      console.error('Error fetching user BGMI registrations:', bgmiError);
     }
     
-    return data as TournamentRegistration[] || [];
+    // Then get general tournament registrations
+    const { data: generalData, error: generalError } = await supabase
+      .from('tournament_registrations')
+      .select('*')
+      .eq('user_id', userId)
+      .order('registration_date', { ascending: false });
+    
+    if (generalError) {
+      console.error('Error fetching user general registrations:', generalError);
+    }
+    
+    // Combine the results
+    const combinedData = [
+      ...(bgmiData || []),
+      ...(generalData || [])
+    ];
+    
+    return combinedData as TournamentRegistration[];
   }
 };

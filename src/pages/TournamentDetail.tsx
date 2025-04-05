@@ -88,31 +88,10 @@ const TournamentDetail = () => {
     if (!id || !user?.id) return;
     
     try {
-      if (id === '7') { // For the BGMI tournament
-        const isRegistered = await tournamentService.checkRegistration(id, user.id);
-        setIsRegistered(isRegistered);
-        console.log("BGMI registration status:", isRegistered);
-        return;
-      }
-      
-      const { data, error } = await supabase
-        .from('tournament_registrations')
-        .select('*')
-        .eq('tournament_id', id)
-        .eq('user_id', user.id)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') {
-        console.error("Error checking registration status:", error);
-        return;
-      }
-      
-      if (data) {
-        setIsRegistered(true);
-        console.log("User is already registered for this tournament:", data);
-      } else {
-        setIsRegistered(false);
-      }
+      console.log("Checking registration status for tournament:", id, "user:", user.id);
+      const isRegistered = await tournamentService.checkRegistration(id, user.id);
+      setIsRegistered(isRegistered);
+      console.log("Registration status:", isRegistered);
     } catch (error) {
       console.error("Error checking registration:", error);
     }
@@ -176,42 +155,13 @@ const TournamentDetail = () => {
     setSubmitLoading(true);
     
     try {
-      if (id === '7') {
-        await tournamentService.registerForTournament(id, user.id, gameUsername);
-        setShowGameIdDialog(false);
-        setIsRegistered(true);
-        
-        toast({
-          title: "Registration successful!",
-          description: "You have successfully registered for the BGMI Championship!",
-        });
-        return;
-      }
-      
-      let paymentAmount = 0;
-      if (tournament.entryFee) {
-        paymentAmount = parseInt(tournament.entryFee.replace(/[^0-9]/g, ''), 10);
-      }
-      
-      const { error } = await supabase
-        .from('tournament_registrations')
-        .insert({
-          tournament_id: id,
-          user_id: user.id,
-          game_username: gameUsername,
-          registration_date: new Date().toISOString(),
-          payment_amount: paymentAmount || null,
-          payment_status: 'completed'
-        });
-      
-      if (error) throw error;
-      
+      await tournamentService.registerForTournament(id, user.id, gameUsername);
       setShowGameIdDialog(false);
       setIsRegistered(true);
       
       toast({
         title: "Registration successful!",
-        description: "You have successfully registered for this tournament.",
+        description: `You have successfully registered for ${tournament?.title || 'the tournament'}!`,
       });
     } catch (error) {
       console.error("Registration error:", error);
