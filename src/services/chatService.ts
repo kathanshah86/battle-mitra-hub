@@ -77,6 +77,8 @@ export const chatService = {
   
   // Send a new message
   async sendMessage(roomId: string, content: string, userId: string, replyTo?: string): Promise<ChatMessage> {
+    console.log('Sending message:', { roomId, content, userId, replyTo });
+    
     const message = {
       room_id: roomId,
       content,
@@ -87,7 +89,14 @@ export const chatService = {
     const { data, error } = await supabase
       .from('chat_messages')
       .insert(message)
-      .select('*')
+      .select(`
+        *,
+        profiles:user_id (
+          id,
+          username,
+          avatar_url
+        )
+      `)
       .single();
     
     if (error) {
@@ -95,7 +104,15 @@ export const chatService = {
       throw error;
     }
     
-    return data;
+    // Transform the data to match the ChatMessage interface
+    return {
+      ...data,
+      user: data.profiles ? {
+        id: data.profiles.id,
+        name: data.profiles.username,
+        avatar_url: data.profiles.avatar_url,
+      } : undefined
+    };
   },
   
   // Update message (e.g., likes)
@@ -122,7 +139,28 @@ export const chatService = {
         filter: `room_id=eq.${roomId}` 
       }, payload => {
         if (payload.new) {
-          callback(payload.new as ChatMessage);
+          // Query for the user data to match our expected format
+          supabase
+            .from('profiles')
+            .select('id, username, avatar_url')
+            .eq('id', (payload.new as ChatMessage).user_id)
+            .single()
+            .then(({ data: userData }) => {
+              const message = payload.new as ChatMessage;
+              
+              callback({
+                ...message,
+                user: userData ? {
+                  id: userData.id,
+                  name: userData.username,
+                  avatar_url: userData.avatar_url,
+                } : undefined
+              });
+            })
+            .catch(error => {
+              console.error('Error fetching user data for new message:', error);
+              callback(payload.new as ChatMessage);
+            });
         }
       })
       .subscribe();

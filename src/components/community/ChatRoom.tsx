@@ -30,6 +30,7 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
       try {
         setLoading(true);
         const data = await chatService.getChatMessages(roomId);
+        console.log("Fetched messages:", data);
         setMessages(data);
       } catch (error) {
         console.error("Error fetching messages:", error);
@@ -43,7 +44,9 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
       }
     };
 
-    fetchMessages();
+    if (roomId) {
+      fetchMessages();
+    }
 
     // Clean up on unmount or room change
     return () => {
@@ -51,10 +54,12 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
         channelRef.current.unsubscribe();
       }
     };
-  }, [roomId]);
+  }, [roomId, toast]);
 
   // Subscribe to new messages
   useEffect(() => {
+    if (!roomId) return;
+    
     // First unsubscribe from any existing channel
     if (channelRef.current) {
       channelRef.current.unsubscribe();
@@ -62,6 +67,7 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
 
     // Then subscribe to the current room
     channelRef.current = chatService.subscribeToRoom(roomId, (newMessage) => {
+      console.log("Received new message:", newMessage);
       setMessages(prevMessages => {
         // Check if message already exists to prevent duplicates
         if (prevMessages.some(msg => msg.id === newMessage.id)) {
@@ -86,14 +92,24 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
     if (!user || !content.trim()) return;
     
     try {
-      await chatService.sendMessage(
+      console.log("Sending message to room:", roomId);
+      const newMessage = await chatService.sendMessage(
         roomId, 
         content,
         user.id,
         replyingTo?.id
       );
       
-      // The new message will be received through the subscription
+      console.log("Message sent successfully:", newMessage);
+      
+      // Add the message to local state to ensure UI updates immediately
+      setMessages(prev => {
+        if (prev.some(msg => msg.id === newMessage.id)) {
+          return prev;
+        }
+        return [...prev, newMessage];
+      });
+      
       setReplyingTo(null);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -121,7 +137,7 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
     try {
       const message = messages.find(msg => msg.id === messageId);
       if (message) {
-        const newLikesCount = liked ? message.likes + 1 : message.likes - 1;
+        const newLikesCount = liked ? (message.likes || 0) + 1 : Math.max(0, (message.likes || 0) - 1);
         await chatService.updateMessage(messageId, { likes: newLikesCount });
         
         // Update the local state

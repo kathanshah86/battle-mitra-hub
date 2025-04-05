@@ -37,6 +37,7 @@ const Community = () => {
       try {
         setLoading(true);
         const rooms = await chatService.getChatRooms();
+        console.log("Fetched chat rooms:", rooms);
         setChatRooms(rooms);
         
         // Set the first room as active by default
@@ -55,8 +56,10 @@ const Community = () => {
       }
     };
 
-    fetchChatRooms();
-  }, []);
+    if (user) {
+      fetchChatRooms();
+    }
+  }, [user, toast, activeChat]);
 
   if (!user) {
     return (
