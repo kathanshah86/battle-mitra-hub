@@ -70,18 +70,24 @@ export const chatService = {
       throw error;
     }
     
-    return data?.map(item => ({
-      ...item,
-      user: {
-        id: item.user_id,
-        name: item.profiles && item.profiles !== null && typeof item.profiles === 'object' && 'username' in item.profiles 
-          ? (item.profiles.username || '') 
-          : 'Unknown User',
-        avatar_url: item.profiles && item.profiles !== null && typeof item.profiles === 'object' && 'avatar_url' in item.profiles 
-          ? (item.profiles.avatar_url || '') 
-          : '',
-      }
-    })) || [];
+    return data?.map(item => {
+      const userProfile = item.profiles;
+      const username = userProfile && typeof userProfile === 'object' && 'username' in userProfile 
+        ? String(userProfile.username || '') 
+        : 'Unknown User';
+      const avatarUrl = userProfile && typeof userProfile === 'object' && 'avatar_url' in userProfile 
+        ? String(userProfile.avatar_url || '') 
+        : '';
+      
+      return {
+        ...item,
+        user: {
+          id: item.user_id,
+          name: username,
+          avatar_url: avatarUrl,
+        }
+      };
+    }) || [];
   },
   
   // Send a new message
@@ -114,16 +120,20 @@ export const chatService = {
     }
     
     // Transform the data to match the ChatMessage interface
+    const userProfile = data.profiles;
+    const username = userProfile && typeof userProfile === 'object' && 'username' in userProfile 
+      ? String(userProfile.username || '') 
+      : 'Unknown User';
+    const avatarUrl = userProfile && typeof userProfile === 'object' && 'avatar_url' in userProfile 
+      ? String(userProfile.avatar_url || '') 
+      : '';
+    
     return {
       ...data,
       user: {
         id: data.user_id,
-        name: data.profiles && data.profiles !== null && typeof data.profiles === 'object' && 'username' in data.profiles 
-          ? (data.profiles.username || '') 
-          : 'Unknown User',
-        avatar_url: data.profiles && data.profiles !== null && typeof data.profiles === 'object' && 'avatar_url' in data.profiles 
-          ? (data.profiles.avatar_url || '') 
-          : '',
+        name: username,
+        avatar_url: avatarUrl,
       }
     };
   },
