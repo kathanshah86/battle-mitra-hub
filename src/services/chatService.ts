@@ -78,14 +78,10 @@ export const chatService = {
       if (item.profiles !== null && 
           item.profiles !== undefined && 
           typeof item.profiles === 'object') {
-        // Use optional chaining and nullish coalescing to safely access properties
+        // Cast to a record with string keys and unknown values
         const profileObj = item.profiles as Record<string, unknown>;
-        if (profileObj.username) {
-          username = String(profileObj.username);
-        }
-        if (profileObj.avatar_url) {
-          avatarUrl = String(profileObj.avatar_url);
-        }
+        username = profileObj?.username ? String(profileObj.username) : 'Unknown User';
+        avatarUrl = profileObj?.avatar_url ? String(profileObj.avatar_url) : '';
       }
       
       return {
@@ -135,14 +131,10 @@ export const chatService = {
     if (data.profiles !== null && 
         data.profiles !== undefined && 
         typeof data.profiles === 'object') {
-      // Use optional chaining and nullish coalescing to safely access properties
+      // Cast to a record with string keys and unknown values
       const profileObj = data.profiles as Record<string, unknown>;
-      if (profileObj.username) {
-        username = String(profileObj.username);
-      }
-      if (profileObj.avatar_url) {
-        avatarUrl = String(profileObj.avatar_url);
-      }
+      username = profileObj?.username ? String(profileObj.username) : 'Unknown User';
+      avatarUrl = profileObj?.avatar_url ? String(profileObj.avatar_url) : '';
     }
     
     return {

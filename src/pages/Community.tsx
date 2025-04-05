@@ -11,6 +11,7 @@ import ChatRoom from "@/components/community/ChatRoom";
 import OnlineUsers from "@/components/community/OnlineUsers";
 import { chatService, ChatRoom as ChatRoomType } from "@/services/chatService";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 // Mock data for online users until we implement user presence
 const mockOnlineUsers = [
@@ -30,25 +31,33 @@ const Community = () => {
   const [activeChat, setActiveChat] = useState<ChatRoomType | null>(null);
   const [showOnlineUsers, setShowOnlineUsers] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchChatRooms = async () => {
       try {
         setLoading(true);
+        setError(null);
         const rooms = await chatService.getChatRooms();
         console.log("Fetched chat rooms:", rooms);
-        setChatRooms(rooms);
         
-        // Set the first room as active by default
-        if (rooms.length > 0 && !activeChat) {
-          setActiveChat(rooms[0]);
+        if (rooms.length === 0) {
+          setError("No chat rooms found");
+        } else {
+          setChatRooms(rooms);
+          
+          // Set the first room as active by default if no active chat
+          if (!activeChat) {
+            setActiveChat(rooms[0]);
+          }
         }
-      } catch (error) {
-        console.error("Failed to fetch chat rooms:", error);
+      } catch (err) {
+        console.error("Failed to fetch chat rooms:", err);
+        setError("Failed to load chat rooms. Please try again later.");
         toast({
           title: "Error loading chat rooms",
-          description: "Please try again later",
+          description: "Please refresh and try again",
           variant: "destructive",
         });
       } finally {
@@ -59,7 +68,7 @@ const Community = () => {
     if (user) {
       fetchChatRooms();
     }
-  }, [user, toast, activeChat]);
+  }, [user, toast]);
 
   if (!user) {
     return (
@@ -97,8 +106,22 @@ const Community = () => {
             {/* Chat Room List - Left Sidebar */}
             <div className="lg:col-span-2 h-full">
               {loading ? (
-                <div className="h-full flex items-center justify-center bg-esports-darker">
+                <div className="h-full flex flex-col items-center justify-center bg-esports-darker p-4">
+                  <Loader2 className="h-8 w-8 animate-spin text-esports-purple mb-2" />
                   <p className="text-gray-400">Loading rooms...</p>
+                </div>
+              ) : error ? (
+                <div className="h-full flex items-center justify-center bg-esports-darker p-4">
+                  <div className="text-center">
+                    <p className="text-gray-400 mb-4">{error}</p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => window.location.reload()}
+                      className="border-gray-700"
+                    >
+                      Retry
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <ChatRoomList 
@@ -114,7 +137,12 @@ const Community = () => {
             
             {/* Main Chat Area */}
             <div className="lg:col-span-7 h-full">
-              {!activeChat ? (
+              {loading ? (
+                <div className="h-full flex flex-col items-center justify-center bg-esports-card">
+                  <Loader2 className="h-8 w-8 animate-spin text-esports-purple mb-2" />
+                  <p className="text-gray-400">Loading chat...</p>
+                </div>
+              ) : !activeChat ? (
                 <div className="h-full flex items-center justify-center bg-esports-card">
                   <p className="text-gray-400">Select a chat room to start messaging</p>
                 </div>
