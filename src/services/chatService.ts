@@ -78,11 +78,13 @@ export const chatService = {
       if (item.profiles !== null && 
           item.profiles !== undefined && 
           typeof item.profiles === 'object') {
-        if ('username' in item.profiles && item.profiles.username) {
-          username = String(item.profiles.username);
+        // Use optional chaining and nullish coalescing to safely access properties
+        const profileObj = item.profiles as Record<string, unknown>;
+        if (profileObj.username) {
+          username = String(profileObj.username);
         }
-        if ('avatar_url' in item.profiles && item.profiles.avatar_url) {
-          avatarUrl = String(item.profiles.avatar_url);
+        if (profileObj.avatar_url) {
+          avatarUrl = String(profileObj.avatar_url);
         }
       }
       
@@ -133,11 +135,13 @@ export const chatService = {
     if (data.profiles !== null && 
         data.profiles !== undefined && 
         typeof data.profiles === 'object') {
-      if ('username' in data.profiles && data.profiles.username) {
-        username = String(data.profiles.username);
+      // Use optional chaining and nullish coalescing to safely access properties
+      const profileObj = data.profiles as Record<string, unknown>;
+      if (profileObj.username) {
+        username = String(profileObj.username);
       }
-      if ('avatar_url' in data.profiles && data.profiles.avatar_url) {
-        avatarUrl = String(data.profiles.avatar_url);
+      if (profileObj.avatar_url) {
+        avatarUrl = String(profileObj.avatar_url);
       }
     }
     
