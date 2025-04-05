@@ -41,7 +41,13 @@ export const chatService = {
       throw error;
     }
     
-    return data || [];
+    return data?.map(room => ({
+      id: room.id,
+      name: room.name,
+      type: room.type as 'general' | 'game' | 'team', // Type assertion to match our enum
+      description: room.description,
+      image_url: room.image_url,
+    })) || [];
   },
   
   // Get messages for a specific room
@@ -68,9 +74,9 @@ export const chatService = {
     return data?.map(item => ({
       ...item,
       user: item.profiles ? {
-        id: item.profiles.id,
-        name: item.profiles.username,
-        avatar_url: item.profiles.avatar_url,
+        id: item.profiles.id || '',
+        name: item.profiles.username || '',
+        avatar_url: item.profiles.avatar_url || '',
       } : undefined
     })) || [];
   },
@@ -108,9 +114,9 @@ export const chatService = {
     return {
       ...data,
       user: data.profiles ? {
-        id: data.profiles.id,
-        name: data.profiles.username,
-        avatar_url: data.profiles.avatar_url,
+        id: data.profiles.id || '',
+        name: data.profiles.username || '',
+        avatar_url: data.profiles.avatar_url || '',
       } : undefined
     };
   },
@@ -151,9 +157,9 @@ export const chatService = {
               callback({
                 ...message,
                 user: userData ? {
-                  id: userData.id,
-                  name: userData.username,
-                  avatar_url: userData.avatar_url,
+                  id: userData.id || '',
+                  name: userData.username || '',
+                  avatar_url: userData.avatar_url || '',
                 } : undefined
               });
             })

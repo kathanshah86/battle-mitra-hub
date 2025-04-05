@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CalendarDays, Trophy, Users, AlertCircle, Clock, MapPin, Check, Users2, Flame, Zap } from "lucide-react";
@@ -30,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import WalletPaymentDialog from "@/components/wallet/WalletPaymentDialog";
 import CountdownTimer from "@/components/tournaments/CountdownTimer";
+import { tournamentService } from "@/services/tournamentService";
 
 const TournamentDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -88,6 +88,13 @@ const TournamentDetail = () => {
     if (!id || !user?.id) return;
     
     try {
+      if (id === '7') { // For the BGMI tournament
+        const isRegistered = await tournamentService.checkRegistration(id, user.id);
+        setIsRegistered(isRegistered);
+        console.log("BGMI registration status:", isRegistered);
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('tournament_registrations')
         .select('*')
@@ -169,6 +176,18 @@ const TournamentDetail = () => {
     setSubmitLoading(true);
     
     try {
+      if (id === '7') {
+        await tournamentService.registerForTournament(id, user.id, gameUsername);
+        setShowGameIdDialog(false);
+        setIsRegistered(true);
+        
+        toast({
+          title: "Registration successful!",
+          description: "You have successfully registered for the BGMI Championship!",
+        });
+        return;
+      }
+      
       let paymentAmount = 0;
       if (tournament.entryFee) {
         paymentAmount = parseInt(tournament.entryFee.replace(/[^0-9]/g, ''), 10);

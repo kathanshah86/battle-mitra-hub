@@ -1,4 +1,3 @@
-
 import { Tournament, Player, LiveMatch, News } from '@/types';
 
 export const tournaments: Tournament[] = [
@@ -123,6 +122,30 @@ export const tournaments: Tournament[] = [
       'No use of emulators allowed - mobile devices only',
       'Players caught cheating will be permanently banned'
     ],
+  },
+  {
+    id: '7',
+    title: 'BGMI Championship 2025',
+    gameType: 'battle-royale' as GameType,
+    image: 'https://wkgnwnajqkxgcpxwnmuo.supabase.co/storage/v1/object/public/game_images/bgmi.jpg',
+    status: 'upcoming' as 'upcoming' | 'ongoing' | 'completed',
+    startDate: '2025-04-08T10:00:00',
+    endDate: '2025-04-08T18:00:00',
+    prizePool: '₹50,000',
+    entryFee: null,
+    participantsCount: 0,
+    maxParticipants: 100,
+    format: 'Battle Royale',
+    description: 'Join our exclusive BGMI Championship 2025! This free-entry tournament is your chance to prove your skills in Battlegrounds Mobile India. Compete with players from across the country for glory and amazing prizes!',
+    rules: [
+      'Players must have a valid BGMI account',
+      'Check-in 30 minutes before the tournament',
+      'Tournament will be held in TPP mode',
+      'Points system: Kills (1 point per kill) + Placement points',
+      'Any form of cheating will result in immediate disqualification',
+    ],
+    organizer: 'Battle Mitra',
+    region: 'India',
   },
 ];
 

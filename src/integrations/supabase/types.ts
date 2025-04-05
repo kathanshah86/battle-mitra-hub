@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      bgmi_tournament_registrations: {
+        Row: {
+          created_at: string | null
+          game_username: string
+          id: string
+          registration_date: string | null
+          status: string | null
+          tournament_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          game_username: string
+          id?: string
+          registration_date?: string | null
+          status?: string | null
+          tournament_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          game_username?: string
+          id?: string
+          registration_date?: string | null
+          status?: string | null
+          tournament_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
