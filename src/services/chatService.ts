@@ -74,10 +74,10 @@ export const chatService = {
       ...item,
       user: {
         id: item.user_id,
-        name: item.profiles && typeof item.profiles === 'object' && 'username' in item.profiles 
+        name: item.profiles && item.profiles !== null && typeof item.profiles === 'object' && 'username' in item.profiles 
           ? (item.profiles.username || '') 
           : 'Unknown User',
-        avatar_url: item.profiles && typeof item.profiles === 'object' && 'avatar_url' in item.profiles 
+        avatar_url: item.profiles && item.profiles !== null && typeof item.profiles === 'object' && 'avatar_url' in item.profiles 
           ? (item.profiles.avatar_url || '') 
           : '',
       }
@@ -118,10 +118,10 @@ export const chatService = {
       ...data,
       user: {
         id: data.user_id,
-        name: data.profiles && typeof data.profiles === 'object' && 'username' in data.profiles 
+        name: data.profiles && data.profiles !== null && typeof data.profiles === 'object' && 'username' in data.profiles 
           ? (data.profiles.username || '') 
           : 'Unknown User',
-        avatar_url: data.profiles && typeof data.profiles === 'object' && 'avatar_url' in data.profiles 
+        avatar_url: data.profiles && data.profiles !== null && typeof data.profiles === 'object' && 'avatar_url' in data.profiles 
           ? (data.profiles.avatar_url || '') 
           : '',
       }
