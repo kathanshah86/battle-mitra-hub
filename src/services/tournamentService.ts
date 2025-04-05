@@ -102,7 +102,20 @@ export const tournamentService = {
       throw error;
     }
     
-    return data as TournamentRegistration;
+    // Transform the data to match the TournamentRegistration interface
+    // Map payment_status to status for general tournament registrations
+    const transformedData: TournamentRegistration = {
+      id: data.id,
+      tournament_id: data.tournament_id,
+      user_id: data.user_id,
+      game_username: data.game_username,
+      registration_date: data.registration_date,
+      status: data.payment_status, // Map payment_status to status
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
+    
+    return transformedData;
   },
   
   // Get all registered users for a tournament
@@ -147,7 +160,20 @@ export const tournamentService = {
       throw error;
     }
     
-    return data as unknown as TournamentRegistration[] || [];
+    // Transform the data to match the TournamentRegistration interface
+    const transformedData = data.map(item => ({
+      id: item.id,
+      tournament_id: item.tournament_id,
+      user_id: item.user_id,
+      game_username: item.game_username,
+      registration_date: item.registration_date,
+      status: item.payment_status, // Map payment_status to status
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      profiles: item.profiles // Keep the joined profiles data
+    }));
+    
+    return transformedData as unknown as TournamentRegistration[];
   },
   
   // Get a user's registrations
@@ -176,10 +202,22 @@ export const tournamentService = {
       console.error('Error fetching user general registrations:', generalError);
     }
     
+    // Transform general registrations to match TournamentRegistration interface
+    const transformedGeneralData = (generalData || []).map(item => ({
+      id: item.id,
+      tournament_id: item.tournament_id,
+      user_id: item.user_id,
+      game_username: item.game_username,
+      registration_date: item.registration_date,
+      status: item.payment_status, // Map payment_status to status
+      created_at: item.created_at,
+      updated_at: item.updated_at
+    }));
+    
     // Combine the results
     const combinedData = [
       ...(bgmiData || []),
-      ...(generalData || [])
+      ...transformedGeneralData
     ];
     
     return combinedData as TournamentRegistration[];
