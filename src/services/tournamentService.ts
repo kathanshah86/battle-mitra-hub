@@ -62,7 +62,7 @@ export const tournamentService = {
       throw error;
     }
     
-    return data;
+    return data as TournamentRegistration;
   },
   
   // Get all registered users for a tournament
@@ -84,7 +84,7 @@ export const tournamentService = {
       throw error;
     }
     
-    return data || [];
+    return data as unknown as TournamentRegistration[] || [];
   },
   
   // Get a user's registrations
@@ -102,6 +102,6 @@ export const tournamentService = {
       throw error;
     }
     
-    return data || [];
+    return data as TournamentRegistration[] || [];
   }
 };

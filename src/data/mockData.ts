@@ -1,4 +1,5 @@
-import { Tournament, Player, LiveMatch, News } from '@/types';
+
+import { Tournament, Player, LiveMatch, News, GameType } from '@/types';
 
 export const tournaments: Tournament[] = [
   {

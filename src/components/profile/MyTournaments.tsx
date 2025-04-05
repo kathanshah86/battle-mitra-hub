@@ -8,15 +8,21 @@ import { Link } from "react-router-dom";
 import { tournaments } from "@/data/mockData";
 import { tournamentService } from "@/services/tournamentService";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
-const MyTournaments = () => {
+interface MyTournamentsProps {
+  userId?: string;
+}
+
+const MyTournaments = ({ userId }: MyTournamentsProps) => {
   const { user } = useAuth();
   const [registeredTournaments, setRegisteredTournaments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRegistrations = async () => {
-      if (!user?.id) return;
+      const effectiveUserId = userId || user?.id;
+      if (!effectiveUserId) return;
       
       try {
         setLoading(true);
@@ -25,12 +31,12 @@ const MyTournaments = () => {
         const { data: regularRegistrations, error } = await supabase
           .from('tournament_registrations')
           .select('tournament_id, registration_date')
-          .eq('user_id', user.id);
+          .eq('user_id', effectiveUserId);
           
         if (error) throw error;
         
         // Fetch BGMI tournament registrations
-        const bgmiRegistrations = await tournamentService.getUserRegistrations(user.id);
+        const bgmiRegistrations = await tournamentService.getUserRegistrations(effectiveUserId);
         
         // Combine registrations into one format
         const allRegistrationIds = [
@@ -60,7 +66,7 @@ const MyTournaments = () => {
     };
 
     fetchRegistrations();
-  }, [user]);
+  }, [userId, user]);
 
   if (loading) {
     return (
