@@ -17,35 +17,40 @@ export const tournamentService = {
   async checkRegistration(tournamentId: string, userId: string): Promise<boolean> {
     if (!userId) return false;
     
-    // First check the BGMI tournament registrations table
-    const { data: bgmiData, error: bgmiError } = await supabase
-      .from('bgmi_tournament_registrations')
-      .select('id')
-      .eq('tournament_id', tournamentId)
-      .eq('user_id', userId)
-      .maybeSingle();
-    
-    if (bgmiError && bgmiError.code !== 'PGRST116') { // PGRST116 means no rows returned
-      console.error('Error checking BGMI registration:', bgmiError);
+    try {
+      // First check the BGMI tournament registrations table
+      const { data: bgmiData, error: bgmiError } = await supabase
+        .from('bgmi_tournament_registrations')
+        .select('id')
+        .eq('tournament_id', tournamentId)
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (bgmiError && bgmiError.code !== 'PGRST116') { // PGRST116 means no rows returned
+        console.error('Error checking BGMI registration:', bgmiError);
+      }
+      
+      if (bgmiData) {
+        return true;
+      }
+      
+      // Then check the general tournament registrations table
+      const { data: generalData, error: generalError } = await supabase
+        .from('tournament_registrations')
+        .select('id')
+        .eq('tournament_id', tournamentId)
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (generalError && generalError.code !== 'PGRST116') {
+        console.error('Error checking general registration:', generalError);
+      }
+      
+      return !!generalData;
+    } catch (error) {
+      console.error('Error in checkRegistration:', error);
+      return false;
     }
-    
-    if (bgmiData) {
-      return true;
-    }
-    
-    // Then check the general tournament registrations table
-    const { data: generalData, error: generalError } = await supabase
-      .from('tournament_registrations')
-      .select('id')
-      .eq('tournament_id', tournamentId)
-      .eq('user_id', userId)
-      .maybeSingle();
-    
-    if (generalError && generalError.code !== 'PGRST116') {
-      console.error('Error checking general registration:', generalError);
-    }
-    
-    return !!generalData;
   },
   
   // Register a user for a tournament

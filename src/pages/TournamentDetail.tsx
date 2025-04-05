@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { CalendarDays, Trophy, Users, AlertCircle, Clock, MapPin, Check, Users2, Flame, Zap } from "lucide-react";
+import { CalendarDays, Trophy, Users, AlertCircle, Clock, MapPin, Check, Users2, Flame, Zap, Loader2 } from "lucide-react";
 import { tournaments } from "@/data/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -45,6 +46,7 @@ const TournamentDetail = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [gameUsername, setGameUsername] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [registrationCheckLoading, setRegistrationCheckLoading] = useState(false);
   
   const getRegistrationEndDate = () => {
     if (!tournament) return new Date();
@@ -62,6 +64,27 @@ const TournamentDetail = () => {
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
     return diffDays < 1 && diffDays > 0;
   };
+  
+  const checkRegistrationStatus = useCallback(async () => {
+    if (!id || !user?.id) return;
+    
+    try {
+      setRegistrationCheckLoading(true);
+      console.log("Checking registration status for tournament:", id, "user:", user.id);
+      const isRegistered = await tournamentService.checkRegistration(id, user.id);
+      setIsRegistered(isRegistered);
+      console.log("Registration status:", isRegistered);
+    } catch (error) {
+      console.error("Error checking registration:", error);
+      toast({
+        title: "Error checking registration",
+        description: "Failed to verify your registration status. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setRegistrationCheckLoading(false);
+    }
+  }, [id, user, toast]);
   
   useEffect(() => {
     const foundTournament = tournaments.find(t => t.id === id);
@@ -82,20 +105,7 @@ const TournamentDetail = () => {
     if (user) {
       checkRegistrationStatus();
     }
-  }, [id, user]);
-  
-  const checkRegistrationStatus = async () => {
-    if (!id || !user?.id) return;
-    
-    try {
-      console.log("Checking registration status for tournament:", id, "user:", user.id);
-      const isRegistered = await tournamentService.checkRegistration(id, user.id);
-      setIsRegistered(isRegistered);
-      console.log("Registration status:", isRegistered);
-    } catch (error) {
-      console.error("Error checking registration:", error);
-    }
-  };
+  }, [id, user, navigate, toast, checkRegistrationStatus]);
   
   const handleRegister = async () => {
     if (!user) {
@@ -116,11 +126,7 @@ const TournamentDetail = () => {
       return;
     }
     
-    if (tournament.entryFee) {
-      setShowGameIdDialog(true);
-    } else {
-      setShowGameIdDialog(true);
-    }
+    setShowGameIdDialog(true);
   };
   
   const initiatePayment = async () => {
@@ -155,21 +161,54 @@ const TournamentDetail = () => {
     setSubmitLoading(true);
     
     try {
-      await tournamentService.registerForTournament(id, user.id, gameUsername);
-      setShowGameIdDialog(false);
-      setIsRegistered(true);
+      // Set a timeout to detect slow responses
+      const registrationPromise = tournamentService.registerForTournament(id, user.id, gameUsername);
       
-      toast({
-        title: "Registration successful!",
-        description: `You have successfully registered for ${tournament?.title || 'the tournament'}!`,
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Registration is taking longer than expected but still processing in the background.")), 5000);
       });
-    } catch (error) {
-      console.error("Registration error:", error);
-      toast({
-        title: "Registration failed",
-        description: error instanceof Error ? error.message : "Failed to complete registration",
-        variant: "destructive"
-      });
+      
+      // Race the promises - either registration completes or timeout occurs
+      await Promise.race([registrationPromise, timeoutPromise])
+        .then(async (result) => {
+          // If registration completed successfully
+          setShowGameIdDialog(false);
+          setIsRegistered(true);
+          
+          toast({
+            title: "Registration successful!",
+            description: `You have successfully registered for ${tournament?.title || 'the tournament'}!`,
+          });
+        })
+        .catch((error) => {
+          // If it's the timeout error, show a different message
+          if (error.message.includes("taking longer than expected")) {
+            toast({
+              title: "Registration in progress",
+              description: "Your registration is being processed in the background. Please refresh the page in a moment to check your status.",
+            });
+            // Don't close the dialog yet as it might still be processing
+          } else {
+            // For other errors
+            console.error("Registration error:", error);
+            toast({
+              title: "Registration failed",
+              description: error instanceof Error ? error.message : "Failed to complete registration",
+              variant: "destructive"
+            });
+          }
+        });
+        
+      // Even if we showed a timeout message, try to complete the registration in the background
+      try {
+        await registrationPromise;
+        setIsRegistered(true);
+        setShowGameIdDialog(false);
+      } catch (e) {
+        // Already showed an error message, so just log this one
+        console.error("Background registration error:", e);
+      }
     } finally {
       setSubmitLoading(false);
     }
@@ -184,7 +223,7 @@ const TournamentDetail = () => {
       
       window.history.replaceState({}, document.title, `/tournaments/${id}`);
     }
-  }, []);
+  }, [id]);
   
   const handleGameIdSubmit = () => {
     if (!gameUsername.trim()) {
@@ -299,15 +338,22 @@ const TournamentDetail = () => {
                       className={`w-full md:w-auto ${
                         isRegistered 
                           ? "bg-green-600 hover:bg-green-700" 
+                          : registrationCheckLoading
+                          ? "bg-gray-600"
                           : "bg-gradient-to-r from-esports-purple to-esports-blue hover:opacity-90"
                       }`}
                       onClick={handleRegister}
-                      disabled={isRegistered}
+                      disabled={isRegistered || registrationCheckLoading || submitLoading}
                     >
                       {isRegistered ? (
                         <>
                           <Check className="h-4 w-4 mr-2" />
                           Already Registered
+                        </>
+                      ) : registrationCheckLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Checking...
                         </>
                       ) : (
                         "Register Now"
@@ -708,7 +754,7 @@ const TournamentDetail = () => {
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowGameIdDialog(false)}>
+            <Button variant="outline" onClick={() => setShowGameIdDialog(false)} disabled={submitLoading}>
               Cancel
             </Button>
             <Button 
@@ -716,7 +762,14 @@ const TournamentDetail = () => {
               disabled={submitLoading}
               className="bg-gradient-to-r from-esports-purple to-esports-blue hover:opacity-90"
             >
-              {submitLoading ? "Registering..." : "Continue"}
+              {submitLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Registering...
+                </>
+              ) : (
+                "Continue"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
