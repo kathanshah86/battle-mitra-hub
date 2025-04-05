@@ -43,7 +43,7 @@ export const chatService = {
     return data?.map(room => ({
       id: room.id,
       name: room.name,
-      type: room.type as 'general' | 'game' | 'team', // Type assertion to ensure compatibility
+      type: (room.type as 'general' | 'game' | 'team'),
       description: room.description,
       image_url: room.image_url,
     })) || [];
@@ -72,14 +72,14 @@ export const chatService = {
     
     return data?.map(item => ({
       ...item,
-      user: item.profiles ? {
-        id: item.profiles.id || '',
-        name: item.profiles.username || '',
-        avatar_url: item.profiles.avatar_url || '',
-      } : {
-        id: item.user_id || '',
-        name: 'Unknown User',
-        avatar_url: '',
+      user: {
+        id: item.user_id,
+        name: item.profiles && typeof item.profiles === 'object' && 'username' in item.profiles 
+          ? (item.profiles.username || '') 
+          : 'Unknown User',
+        avatar_url: item.profiles && typeof item.profiles === 'object' && 'avatar_url' in item.profiles 
+          ? (item.profiles.avatar_url || '') 
+          : '',
       }
     })) || [];
   },
@@ -116,14 +116,14 @@ export const chatService = {
     // Transform the data to match the ChatMessage interface
     return {
       ...data,
-      user: data.profiles ? {
-        id: data.profiles.id || '',
-        name: data.profiles.username || '',
-        avatar_url: data.profiles.avatar_url || '',
-      } : {
-        id: data.user_id || '',
-        name: 'Unknown User',
-        avatar_url: '',
+      user: {
+        id: data.user_id,
+        name: data.profiles && typeof data.profiles === 'object' && 'username' in data.profiles 
+          ? (data.profiles.username || '') 
+          : 'Unknown User',
+        avatar_url: data.profiles && typeof data.profiles === 'object' && 'avatar_url' in data.profiles 
+          ? (data.profiles.avatar_url || '') 
+          : '',
       }
     };
   },
@@ -153,12 +153,14 @@ export const chatService = {
       }, payload => {
         if (payload.new) {
           // Query for the user data to match our expected format
-          supabase
-            .from('profiles')
-            .select('id, username, avatar_url')
-            .eq('id', (payload.new as ChatMessage).user_id)
-            .single()
-            .then(({ data: userData, error }) => {
+          const fetchUserData = async () => {
+            try {
+              const { data: userData, error } = await supabase
+                .from('profiles')
+                .select('id, username, avatar_url')
+                .eq('id', (payload.new as ChatMessage).user_id)
+                .single();
+              
               const message = payload.new as ChatMessage;
               
               if (error) {
@@ -186,8 +188,7 @@ export const chatService = {
                   avatar_url: '',
                 }
               });
-            })
-            .catch(error => {
+            } catch (error) {
               console.error('Error fetching user data for new message:', error);
               // Still provide the message even if user data fetching fails
               callback({
@@ -198,7 +199,11 @@ export const chatService = {
                   avatar_url: '',
                 }
               });
-            });
+            }
+          };
+          
+          // Execute the async function
+          fetchUserData();
         }
       })
       .subscribe();
