@@ -43,7 +43,7 @@ export const chatService = {
     return data?.map(room => ({
       id: room.id,
       name: room.name,
-      type: room.type as 'general' | 'game' | 'team', // Type assertion to match our enum
+      type: room.type as 'general' | 'game' | 'team', // Type assertion to ensure compatibility
       description: room.description,
       image_url: room.image_url,
     })) || [];
@@ -76,7 +76,11 @@ export const chatService = {
         id: item.profiles.id || '',
         name: item.profiles.username || '',
         avatar_url: item.profiles.avatar_url || '',
-      } : undefined
+      } : {
+        id: item.user_id || '',
+        name: 'Unknown User',
+        avatar_url: '',
+      }
     })) || [];
   },
   
@@ -116,7 +120,11 @@ export const chatService = {
         id: data.profiles.id || '',
         name: data.profiles.username || '',
         avatar_url: data.profiles.avatar_url || '',
-      } : undefined
+      } : {
+        id: data.user_id || '',
+        name: 'Unknown User',
+        avatar_url: '',
+      }
     };
   },
   
@@ -150,21 +158,46 @@ export const chatService = {
             .select('id, username, avatar_url')
             .eq('id', (payload.new as ChatMessage).user_id)
             .single()
-            .then(({ data: userData }) => {
+            .then(({ data: userData, error }) => {
               const message = payload.new as ChatMessage;
               
+              if (error) {
+                console.error('Error fetching user data for new message:', error);
+                callback({
+                  ...message,
+                  user: {
+                    id: message.user_id,
+                    name: 'Unknown User',
+                    avatar_url: '',
+                  }
+                });
+                return;
+              }
+
               callback({
                 ...message,
                 user: userData ? {
                   id: userData.id || '',
                   name: userData.username || '',
                   avatar_url: userData.avatar_url || '',
-                } : undefined
+                } : {
+                  id: message.user_id,
+                  name: 'Unknown User',
+                  avatar_url: '',
+                }
               });
             })
             .catch(error => {
               console.error('Error fetching user data for new message:', error);
-              callback(payload.new as ChatMessage);
+              // Still provide the message even if user data fetching fails
+              callback({
+                ...(payload.new as ChatMessage),
+                user: {
+                  id: (payload.new as ChatMessage).user_id,
+                  name: 'Unknown User',
+                  avatar_url: '',
+                }
+              });
             });
         }
       })
