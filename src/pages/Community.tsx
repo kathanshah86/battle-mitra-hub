@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
@@ -34,8 +34,14 @@ const Community = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const [retryCount, setRetryCount] = useState(0);
 
-  const fetchChatRooms = async () => {
+  const fetchChatRooms = useCallback(async () => {
+    // If we've already retried 3 times, wait a bit longer before trying again
+    if (retryCount > 2) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+    
     try {
       setLoading(true);
       setError(null);
@@ -51,7 +57,7 @@ const Community = () => {
             variant: "destructive"
           });
         }
-      }, 8000); // 8 seconds timeout
+      }, 5000); // 5 seconds timeout (reduced from 8)
       
       const rooms = await chatService.getChatRooms();
       console.log("Fetched chat rooms:", rooms);
@@ -68,24 +74,47 @@ const Community = () => {
           setActiveChat(rooms[0]);
         }
       }
+      
+      // Reset retry count on success
+      setRetryCount(0);
     } catch (err) {
       console.error("Failed to fetch chat rooms:", err);
       setError("Failed to load chat rooms. Please try again later.");
-      toast({
-        title: "Error loading chat rooms",
-        description: "Please refresh and try again",
-        variant: "destructive",
-      });
+      
+      // Increment retry count
+      setRetryCount(prev => prev + 1);
+      
+      // Only show toast for first few errors to avoid spamming
+      if (retryCount < 3) {
+        toast({
+          title: "Error loading chat rooms",
+          description: "Please refresh and try again",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, loading, activeChat, retryCount]);
+
+  // Auto-retry with exponential backoff
+  useEffect(() => {
+    if (error && retryCount > 0 && retryCount < 4) {
+      const timeout = Math.min(2000 * Math.pow(2, retryCount - 1), 10000);
+      const retryTimer = setTimeout(() => {
+        console.log(`Auto-retrying fetch (attempt ${retryCount})...`);
+        fetchChatRooms();
+      }, timeout);
+      
+      return () => clearTimeout(retryTimer);
+    }
+  }, [error, retryCount, fetchChatRooms]);
 
   useEffect(() => {
     if (user) {
       fetchChatRooms();
     }
-  }, [user, toast]);
+  }, [user, fetchChatRooms]);
 
   if (!user) {
     return (
@@ -111,6 +140,17 @@ const Community = () => {
       </>
     );
   }
+
+  const handleRoomSelect = (roomId: string) => {
+    const room = chatRooms.find(r => r.id === roomId);
+    if (room) {
+      console.log("Selected room:", room.name);
+      setActiveChat(room);
+      
+      // Reset any errors when changing rooms
+      setError(null);
+    }
+  };
 
   const renderRoomsSection = () => {
     if (loading) {
@@ -148,17 +188,14 @@ const Community = () => {
     return (
       <ChatRoomList 
         rooms={chatRooms} 
-        onSelectRoom={(roomId) => {
-          const room = chatRooms.find(r => r.id === roomId);
-          if (room) setActiveChat(room);
-        }}
+        onSelectRoom={handleRoomSelect}
         activeChatId={activeChat?.id || ""}
       />
     );
   };
 
   const renderChatSection = () => {
-    if (loading) {
+    if (loading && !activeChat) {
       return (
         <div className="h-full flex flex-col bg-esports-card">
           <div className="h-16 px-4 border-b border-gray-800 flex items-center bg-esports-darker">

@@ -27,42 +27,71 @@ export interface ChatRoom {
   unread?: number;
 }
 
-const MESSAGES_LIMIT = 50; // Limit the number of messages initially loaded
+const MESSAGES_LIMIT = 30; // Reduce limit for faster initial loading
 
 export const chatService = {
-  // Get all chat rooms
+  // Get all chat rooms with improved performance
   async getChatRooms(): Promise<ChatRoom[]> {
+    const cacheKey = 'chatRooms_cache';
+    const cachedRooms = sessionStorage.getItem(cacheKey);
+    
+    // Use cached data if available and not older than 2 minutes
+    if (cachedRooms) {
+      const { data, timestamp } = JSON.parse(cachedRooms);
+      const isCacheValid = Date.now() - timestamp < 2 * 60 * 1000; // 2 minutes
+      
+      if (isCacheValid) {
+        console.log('Using cached chat rooms');
+        return data;
+      }
+    }
+    
     const { data, error } = await supabase
       .from('chat_rooms')
       .select('*')
       .order('name')
-      .limit(20); // Limit to 20 rooms for faster loading
+      .limit(10); // Reduced limit for faster loading
     
     if (error) {
       console.error('Error fetching chat rooms:', error);
       throw error;
     }
     
-    return data?.map(room => ({
+    const rooms = data?.map(room => ({
       id: room.id,
       name: room.name,
       type: (room.type as 'general' | 'game' | 'team'),
       description: room.description,
       image_url: room.image_url,
     })) || [];
+    
+    // Cache the result
+    sessionStorage.setItem(cacheKey, JSON.stringify({
+      data: rooms,
+      timestamp: Date.now()
+    }));
+    
+    return rooms;
   },
   
-  // Get messages for a specific room
+  // Get messages for a specific room with optimized query
   async getChatMessages(roomId: string): Promise<ChatMessage[]> {
-    // Add a timeout promise to ensure the query doesn't hang
+    // Add a shorter timeout to fail fast
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Query timed out')), 8000); // 8 second timeout
+      setTimeout(() => reject(new Error('Query timed out')), 5000); // 5 second timeout instead of 8
     });
     
     const queryPromise = supabase
       .from('chat_messages')
       .select(`
-        *,
+        id,
+        content,
+        user_id,
+        room_id,
+        created_at,
+        updated_at,
+        likes,
+        reply_to,
         profiles:user_id (
           id,
           username,
@@ -70,8 +99,8 @@ export const chatService = {
         )
       `)
       .eq('room_id', roomId)
-      .order('created_at', { ascending: false }) // Get newest first for optimization
-      .limit(MESSAGES_LIMIT) // Limit number of messages to improve performance
+      .order('created_at', { ascending: false })
+      .limit(MESSAGES_LIMIT)
       .then(async ({ data, error }) => {
         if (error) {
           console.error('Error fetching chat messages:', error);
@@ -80,21 +109,27 @@ export const chatService = {
         
         // Reverse the array to show messages in chronological order
         return (data || []).reverse().map(item => {
-          // Safely extract profile data with explicit null checks
+          // Safely extract profile data
           let username = 'Unknown User';
           let avatarUrl = '';
           
           if (item.profiles !== null && 
               item.profiles !== undefined && 
               typeof item.profiles === 'object') {
-            // Cast to a record with string keys and unknown values
             const profileObj = item.profiles as Record<string, unknown>;
             username = profileObj?.username ? String(profileObj.username) : 'Unknown User';
             avatarUrl = profileObj?.avatar_url ? String(profileObj.avatar_url) : '';
           }
           
           return {
-            ...item,
+            id: item.id,
+            content: item.content,
+            user_id: item.user_id,
+            room_id: item.room_id,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+            likes: item.likes,
+            reply_to: item.reply_to,
             user: {
               id: item.user_id,
               name: username,
@@ -110,8 +145,6 @@ export const chatService = {
   
   // Send a new message
   async sendMessage(roomId: string, content: string, userId: string, replyTo?: string): Promise<ChatMessage> {
-    console.log('Sending message:', { roomId, content, userId, replyTo });
-    
     const message = {
       room_id: roomId,
       content,
@@ -137,14 +170,13 @@ export const chatService = {
       throw error;
     }
     
-    // Transform the data to match the ChatMessage interface with safe null checks
+    // Transform the data
     let username = 'Unknown User';
     let avatarUrl = '';
     
     if (data.profiles !== null && 
         data.profiles !== undefined && 
         typeof data.profiles === 'object') {
-      // Cast to a record with string keys and unknown values
       const profileObj = data.profiles as Record<string, unknown>;
       username = profileObj?.username ? String(profileObj.username) : 'Unknown User';
       avatarUrl = profileObj?.avatar_url ? String(profileObj.avatar_url) : '';
@@ -222,7 +254,6 @@ export const chatService = {
               });
             } catch (error) {
               console.error('Error fetching user data for new message:', error);
-              // Still provide the message even if user data fetching fails
               callback({
                 ...(payload.new as ChatMessage),
                 user: {

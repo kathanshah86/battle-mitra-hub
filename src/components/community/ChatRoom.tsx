@@ -6,10 +6,11 @@ import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import { chatService, ChatMessage as ChatMessageType } from "@/services/chatService";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
-import { RealtimeChannel } from "@supabase/supabase-js";
+import { Loader2, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 interface ChatRoomProps {
   roomId: string;
@@ -26,14 +27,20 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const messagesLoadedRef = useRef(false);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load initial messages with timeout
+  // Load initial messages with improved error handling
   useEffect(() => {
     const fetchMessages = async () => {
       if (!roomId || messagesLoadedRef.current) return;
       
+      // Clear any existing timeout
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+      
       // Set up timeout to prevent endless loading
-      const timeoutId = setTimeout(() => {
+      loadingTimeoutRef.current = setTimeout(() => {
         if (loading) {
           setLoading(false);
           setLoadingError("Loading took too long. Please try refreshing.");
@@ -43,14 +50,13 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
             variant: "destructive"
           });
         }
-      }, 10000); // 10 seconds timeout
+      }, 6000); // 6 seconds timeout (reduced from 10)
       
       try {
         setLoading(true);
         setLoadingError(null);
         
         const data = await chatService.getChatMessages(roomId);
-        console.log("Fetched messages:", data);
         setMessages(data);
         messagesLoadedRef.current = true;
       } catch (error) {
@@ -63,7 +69,10 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
         });
       } finally {
         setLoading(false);
-        clearTimeout(timeoutId);
+        if (loadingTimeoutRef.current) {
+          clearTimeout(loadingTimeoutRef.current);
+          loadingTimeoutRef.current = null;
+        }
       }
     };
 
@@ -77,10 +86,15 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
       if (channelRef.current) {
         channelRef.current.unsubscribe();
       }
+      
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
     };
   }, [roomId, toast]);
 
-  // Subscribe to new messages
+  // Subscribe to new messages with improved error handling
   useEffect(() => {
     if (!roomId) return;
     
@@ -89,18 +103,32 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
       channelRef.current.unsubscribe();
     }
 
-    // Then subscribe to the current room
-    channelRef.current = chatService.subscribeToRoom(roomId, (newMessage) => {
-      console.log("Received new message:", newMessage);
-      setMessages(prevMessages => {
-        // Check if message already exists to prevent duplicates
-        if (prevMessages.some(msg => msg.id === newMessage.id)) {
-          return prevMessages;
-        }
-        return [...prevMessages, newMessage];
+    try {
+      // Then subscribe to the current room
+      channelRef.current = chatService.subscribeToRoom(roomId, (newMessage) => {
+        setMessages(prevMessages => {
+          // Check if message already exists to prevent duplicates
+          if (prevMessages.some(msg => msg.id === newMessage.id)) {
+            return prevMessages;
+          }
+          return [...prevMessages, newMessage];
+        });
       });
-    });
-  }, [roomId]);
+    } catch (error) {
+      console.error("Error subscribing to room:", error);
+      toast({
+        title: "Connection error",
+        description: "Failed to connect to chat room. Please refresh the page.",
+        variant: "destructive"
+      });
+    }
+    
+    return () => {
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+      }
+    };
+  }, [roomId, toast]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -202,7 +230,7 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
         <div className="h-full flex items-center justify-center text-gray-500">
           <div className="text-center">
             <p className="mb-4">{loadingError}</p>
-            <button 
+            <Button 
               onClick={() => {
                 messagesLoadedRef.current = false;
                 setLoading(true);
@@ -218,10 +246,11 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
                   })
                   .finally(() => setLoading(false));
               }}
-              className="px-4 py-2 bg-esports-purple rounded-md text-white hover:bg-esports-purple/90"
+              className="px-4 py-2 bg-esports-purple rounded-md text-white hover:bg-esports-purple/90 flex items-center gap-2"
             >
+              <RefreshCw className="h-4 w-4" />
               Try Again
-            </button>
+            </Button>
           </div>
         </div>
       );
