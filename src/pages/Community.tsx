@@ -36,17 +36,24 @@ const Community = () => {
   const { toast } = useToast();
   const [retryCount, setRetryCount] = useState(0);
 
-  const fetchChatRooms = useCallback(async () => {
-    // If we've already retried 3 times, wait a bit longer before trying again
-    if (retryCount > 2) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+  // Initialize from local storage if available
+  useEffect(() => {
+    // Try to recover active chat from localStorage
+    const savedChatId = localStorage.getItem('activeChat');
+    if (savedChatId) {
+      // We'll populate this once we fetch the rooms
+      console.log('Found saved chat:', savedChatId);
     }
+  }, []);
+
+  const fetchChatRooms = useCallback(async () => {
+    if (!user) return;
     
     try {
       setLoading(true);
       setError(null);
       
-      // Set a timeout for the fetch operation
+      // Add a shorter timeout for better UX
       const timeoutId = setTimeout(() => {
         if (loading) {
           setLoading(false);
@@ -57,11 +64,11 @@ const Community = () => {
             variant: "destructive"
           });
         }
-      }, 5000); // 5 seconds timeout (reduced from 8)
+      }, 3000); // 3 seconds timeout (reduced from 5)
       
       const rooms = await chatService.getChatRooms();
-      console.log("Fetched chat rooms:", rooms);
       
+      // Clear timeout as we've got data
       clearTimeout(timeoutId);
       
       if (rooms.length === 0) {
@@ -69,8 +76,18 @@ const Community = () => {
       } else {
         setChatRooms(rooms);
         
-        // Set the first room as active by default if no active chat
-        if (!activeChat) {
+        // Try to restore the previously active chat
+        const savedChatId = localStorage.getItem('activeChat');
+        if (savedChatId) {
+          const savedRoom = rooms.find(r => r.id === savedChatId);
+          if (savedRoom) {
+            setActiveChat(savedRoom);
+          } else {
+            // Fall back to first room if saved room not found
+            setActiveChat(rooms[0]);
+          }
+        } else if (!activeChat) {
+          // Set the first room as active by default if no active chat
           setActiveChat(rooms[0]);
         }
       }
@@ -85,7 +102,7 @@ const Community = () => {
       setRetryCount(prev => prev + 1);
       
       // Only show toast for first few errors to avoid spamming
-      if (retryCount < 3) {
+      if (retryCount < 2) {
         toast({
           title: "Error loading chat rooms",
           description: "Please refresh and try again",
@@ -95,12 +112,22 @@ const Community = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, loading, activeChat, retryCount]);
+  }, [toast, loading, activeChat, retryCount, user]);
 
-  // Auto-retry with exponential backoff
+  // Initial data fetch
   useEffect(() => {
-    if (error && retryCount > 0 && retryCount < 4) {
-      const timeout = Math.min(2000 * Math.pow(2, retryCount - 1), 10000);
+    if (user) {
+      fetchChatRooms();
+    }
+  }, [user, fetchChatRooms]);
+
+  // Auto-retry with shorter delay
+  useEffect(() => {
+    if (error && retryCount > 0 && retryCount < 3) {
+      // Shorter timeout for better UX (max 5 seconds)
+      const timeout = Math.min(1000 * Math.pow(1.5, retryCount - 1), 5000);
+      console.log(`Will retry in ${timeout}ms`);
+      
       const retryTimer = setTimeout(() => {
         console.log(`Auto-retrying fetch (attempt ${retryCount})...`);
         fetchChatRooms();
@@ -110,12 +137,22 @@ const Community = () => {
     }
   }, [error, retryCount, fetchChatRooms]);
 
-  useEffect(() => {
-    if (user) {
-      fetchChatRooms();
+  // Handle room selection
+  const handleRoomSelect = (roomId: string) => {
+    const room = chatRooms.find(r => r.id === roomId);
+    if (room) {
+      console.log("Selected room:", room.name);
+      setActiveChat(room);
+      
+      // Save active chat to localStorage
+      localStorage.setItem('activeChat', room.id);
+      
+      // Reset any errors when changing rooms
+      setError(null);
     }
-  }, [user, fetchChatRooms]);
+  };
 
+  // Login screen if not authenticated
   if (!user) {
     return (
       <>
@@ -141,19 +178,8 @@ const Community = () => {
     );
   }
 
-  const handleRoomSelect = (roomId: string) => {
-    const room = chatRooms.find(r => r.id === roomId);
-    if (room) {
-      console.log("Selected room:", room.name);
-      setActiveChat(room);
-      
-      // Reset any errors when changing rooms
-      setError(null);
-    }
-  };
-
   const renderRoomsSection = () => {
-    if (loading) {
+    if (loading && chatRooms.length === 0) {
       return (
         <div className="h-full flex flex-col bg-esports-darker p-4">
           <Skeleton className="h-8 w-3/4 mb-4" />
@@ -167,7 +193,7 @@ const Community = () => {
       );
     }
     
-    if (error) {
+    if (error && chatRooms.length === 0) {
       return (
         <div className="h-full flex items-center justify-center bg-esports-darker p-4">
           <div className="text-center">
@@ -195,7 +221,7 @@ const Community = () => {
   };
 
   const renderChatSection = () => {
-    if (loading && !activeChat) {
+    if (loading && chatRooms.length === 0) {
       return (
         <div className="h-full flex flex-col bg-esports-card">
           <div className="h-16 px-4 border-b border-gray-800 flex items-center bg-esports-darker">
@@ -221,7 +247,7 @@ const Community = () => {
       );
     }
     
-    if (error && !activeChat) {
+    if (error && chatRooms.length === 0) {
       return (
         <div className="h-full flex items-center justify-center bg-esports-card">
           <div className="text-center">

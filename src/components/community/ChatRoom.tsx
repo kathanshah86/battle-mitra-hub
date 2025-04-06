@@ -29,7 +29,29 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
   const messagesLoadedRef = useRef(false);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load initial messages with improved error handling
+  // Handle room changes and cleanup
+  useEffect(() => {
+    // Reset state when room changes
+    setMessages([]);
+    setLoading(true);
+    setLoadingError(null);
+    messagesLoadedRef.current = false;
+    
+    // Clean up any existing subscription
+    return () => {
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
+      }
+      
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+    };
+  }, [roomId]);
+
+  // Load initial messages
   useEffect(() => {
     const fetchMessages = async () => {
       if (!roomId || messagesLoadedRef.current) return;
@@ -50,7 +72,7 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
             variant: "destructive"
           });
         }
-      }, 6000); // 6 seconds timeout (reduced from 10)
+      }, 4000); // 4 seconds timeout (reduced from 6)
       
       try {
         setLoading(true);
@@ -77,26 +99,13 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
     };
 
     if (roomId) {
-      messagesLoadedRef.current = false;
       fetchMessages();
     }
+  }, [roomId, toast, loading]);
 
-    // Clean up on unmount or room change
-    return () => {
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-      }
-      
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
-    };
-  }, [roomId, toast]);
-
-  // Subscribe to new messages with improved error handling
+  // Subscribe to new messages
   useEffect(() => {
-    if (!roomId) return;
+    if (!roomId || !messagesLoadedRef.current) return;
     
     // First unsubscribe from any existing channel
     if (channelRef.current) {
@@ -122,17 +131,11 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
         variant: "destructive"
       });
     }
-    
-    return () => {
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-      }
-    };
-  }, [roomId, toast]);
+  }, [roomId, toast, messagesLoadedRef.current]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    if (scrollAreaRef.current && !loading) {
+    if (scrollAreaRef.current && !loading && messages.length > 0) {
       const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollElement) {
         scrollElement.scrollTop = scrollElement.scrollHeight;
@@ -144,15 +147,12 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
     if (!user || !content.trim()) return;
     
     try {
-      console.log("Sending message to room:", roomId);
       const newMessage = await chatService.sendMessage(
         roomId, 
         content,
         user.id,
         replyingTo?.id
       );
-      
-      console.log("Message sent successfully:", newMessage);
       
       // Add the message to local state to ensure UI updates immediately
       setMessages(prev => {
