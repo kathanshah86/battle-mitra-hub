@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ChatRoomProps {
   roomId: string;
@@ -21,30 +22,53 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [replyingTo, setReplyingTo] = useState<{ id: string; user: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const messagesLoadedRef = useRef(false);
 
-  // Load initial messages
+  // Load initial messages with timeout
   useEffect(() => {
     const fetchMessages = async () => {
+      if (!roomId || messagesLoadedRef.current) return;
+      
+      // Set up timeout to prevent endless loading
+      const timeoutId = setTimeout(() => {
+        if (loading) {
+          setLoading(false);
+          setLoadingError("Loading took too long. Please try refreshing.");
+          toast({
+            title: "Loading timeout",
+            description: "Chat messages took too long to load. Please try again.",
+            variant: "destructive"
+          });
+        }
+      }, 10000); // 10 seconds timeout
+      
       try {
         setLoading(true);
+        setLoadingError(null);
+        
         const data = await chatService.getChatMessages(roomId);
         console.log("Fetched messages:", data);
         setMessages(data);
+        messagesLoadedRef.current = true;
       } catch (error) {
         console.error("Error fetching messages:", error);
+        setLoadingError("Failed to load chat messages");
         toast({
           title: "Error loading messages",
-          description: "Failed to load chat messages",
+          description: "Failed to load chat messages. Please try refreshing.",
           variant: "destructive"
         });
       } finally {
         setLoading(false);
+        clearTimeout(timeoutId);
       }
     };
 
     if (roomId) {
+      messagesLoadedRef.current = false;
       fetchMessages();
     }
 
@@ -80,13 +104,13 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    if (scrollAreaRef.current) {
+    if (scrollAreaRef.current && !loading) {
       const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollElement) {
         scrollElement.scrollTop = scrollElement.scrollHeight;
       }
     }
-  }, [messages]);
+  }, [messages, loading]);
 
   const handleSendMessage = async (content: string) => {
     if (!user || !content.trim()) return;
@@ -152,31 +176,85 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
     }
   };
 
+  const renderChatContent = () => {
+    if (loading) {
+      return (
+        <div className="p-4 space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-start gap-4">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-20 w-full" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
+    if (loadingError) {
+      return (
+        <div className="h-full flex items-center justify-center text-gray-500">
+          <div className="text-center">
+            <p className="mb-4">{loadingError}</p>
+            <button 
+              onClick={() => {
+                messagesLoadedRef.current = false;
+                setLoading(true);
+                setLoadingError(null);
+                chatService.getChatMessages(roomId)
+                  .then(data => {
+                    setMessages(data);
+                    messagesLoadedRef.current = true;
+                  })
+                  .catch(err => {
+                    console.error("Retry error:", err);
+                    setLoadingError("Failed to load messages again. Please try later.");
+                  })
+                  .finally(() => setLoading(false));
+              }}
+              className="px-4 py-2 bg-esports-purple rounded-md text-white hover:bg-esports-purple/90"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    if (messages.length === 0) {
+      return (
+        <div className="h-full flex items-center justify-center text-gray-500">
+          <p>No messages yet. Start the conversation!</p>
+        </div>
+      );
+    }
+    
+    return (
+      <div>
+        {messages.map((message) => (
+          <ChatMessage 
+            key={message.id} 
+            message={message} 
+            onReply={handleReply}
+            onLike={handleLike}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full">
       <ChatHeader roomName={roomName} participantCount={23} />
       
       <ScrollArea className="flex-1 p-4 chat-scroll-area" ref={scrollAreaRef}>
-        {loading ? (
-          <div className="h-full flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-esports-purple" />
-          </div>
-        ) : messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-gray-500">
-            <p>No messages yet. Start the conversation!</p>
-          </div>
-        ) : (
-          <div>
-            {messages.map((message) => (
-              <ChatMessage 
-                key={message.id} 
-                message={message} 
-                onReply={handleReply}
-                onLike={handleLike}
-              />
-            ))}
-          </div>
-        )}
+        {renderChatContent()}
       </ScrollArea>
       
       <ChatInput 

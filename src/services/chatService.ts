@@ -27,13 +27,16 @@ export interface ChatRoom {
   unread?: number;
 }
 
+const MESSAGES_LIMIT = 50; // Limit the number of messages initially loaded
+
 export const chatService = {
   // Get all chat rooms
   async getChatRooms(): Promise<ChatRoom[]> {
     const { data, error } = await supabase
       .from('chat_rooms')
       .select('*')
-      .order('name');
+      .order('name')
+      .limit(20); // Limit to 20 rooms for faster loading
     
     if (error) {
       console.error('Error fetching chat rooms:', error);
@@ -51,7 +54,12 @@ export const chatService = {
   
   // Get messages for a specific room
   async getChatMessages(roomId: string): Promise<ChatMessage[]> {
-    const { data, error } = await supabase
+    // Add a timeout promise to ensure the query doesn't hang
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Query timed out')), 8000); // 8 second timeout
+    });
+    
+    const queryPromise = supabase
       .from('chat_messages')
       .select(`
         *,
@@ -62,37 +70,42 @@ export const chatService = {
         )
       `)
       .eq('room_id', roomId)
-      .order('created_at')
-      .limit(100);
-    
-    if (error) {
-      console.error('Error fetching chat messages:', error);
-      throw error;
-    }
-    
-    return data?.map(item => {
-      // Safely extract profile data with explicit null checks
-      let username = 'Unknown User';
-      let avatarUrl = '';
-      
-      if (item.profiles !== null && 
-          item.profiles !== undefined && 
-          typeof item.profiles === 'object') {
-        // Cast to a record with string keys and unknown values
-        const profileObj = item.profiles as Record<string, unknown>;
-        username = profileObj?.username ? String(profileObj.username) : 'Unknown User';
-        avatarUrl = profileObj?.avatar_url ? String(profileObj.avatar_url) : '';
-      }
-      
-      return {
-        ...item,
-        user: {
-          id: item.user_id,
-          name: username,
-          avatar_url: avatarUrl,
+      .order('created_at', { ascending: false }) // Get newest first for optimization
+      .limit(MESSAGES_LIMIT) // Limit number of messages to improve performance
+      .then(async ({ data, error }) => {
+        if (error) {
+          console.error('Error fetching chat messages:', error);
+          throw error;
         }
-      };
-    }) || [];
+        
+        // Reverse the array to show messages in chronological order
+        return (data || []).reverse().map(item => {
+          // Safely extract profile data with explicit null checks
+          let username = 'Unknown User';
+          let avatarUrl = '';
+          
+          if (item.profiles !== null && 
+              item.profiles !== undefined && 
+              typeof item.profiles === 'object') {
+            // Cast to a record with string keys and unknown values
+            const profileObj = item.profiles as Record<string, unknown>;
+            username = profileObj?.username ? String(profileObj.username) : 'Unknown User';
+            avatarUrl = profileObj?.avatar_url ? String(profileObj.avatar_url) : '';
+          }
+          
+          return {
+            ...item,
+            user: {
+              id: item.user_id,
+              name: username,
+              avatar_url: avatarUrl,
+            }
+          };
+        });
+      });
+    
+    // Race between the query and the timeout
+    return Promise.race([queryPromise, timeoutPromise]);
   },
   
   // Send a new message
