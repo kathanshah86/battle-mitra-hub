@@ -46,7 +46,7 @@ const TournamentDetail = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [gameUsername, setGameUsername] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
-  const [registrationCheckLoading, setRegistrationCheckLoading] = useState(false);
+  const [registrationCheckLoading, setRegistrationCheckLoading] = useState(true);
   
   const getRegistrationEndDate = () => {
     if (!tournament) return new Date();
@@ -66,7 +66,10 @@ const TournamentDetail = () => {
   };
   
   const checkRegistrationStatus = useCallback(async () => {
-    if (!id || !user?.id) return;
+    if (!id || !user?.id) {
+      setRegistrationCheckLoading(false);
+      return;
+    }
     
     try {
       setRegistrationCheckLoading(true);
@@ -104,6 +107,8 @@ const TournamentDetail = () => {
     
     if (user) {
       checkRegistrationStatus();
+    } else {
+      setRegistrationCheckLoading(false);
     }
   }, [id, user, navigate, toast, checkRegistrationStatus]);
   
@@ -118,6 +123,7 @@ const TournamentDetail = () => {
       return;
     }
     
+    // Don't check if already registered here, as we're already tracking the state
     if (isRegistered) {
       toast({
         title: "Already registered",
