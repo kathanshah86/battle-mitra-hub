@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatHeader from "./ChatHeader";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
-import { chatService, ChatMessage as ChatMessageType } from "@/services/chatService";
+import { chatService, ChatMessage as ChatMessageType } from "@/services/chat";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";

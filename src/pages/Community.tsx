@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import ChatRoomList from "@/components/community/ChatRoomList";
 import ChatRoom from "@/components/community/ChatRoom";
 import OnlineUsers from "@/components/community/OnlineUsers";
-import { chatService, ChatRoom as ChatRoomType } from "@/services/chatService";
+import { chatService, ChatRoom as ChatRoomType } from "@/services/chat";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";

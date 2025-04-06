@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, Hash, Users, Gamepad2 } from "lucide-react";
-import { ChatRoom } from "@/services/chatService";
+import { ChatRoom } from "@/services/chat";
 
 interface ChatRoomListProps {
   rooms: ChatRoom[];
