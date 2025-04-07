@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatHeader from "./ChatHeader";
@@ -24,20 +23,21 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
   const [replyingTo, setReplyingTo] = useState<{ id: string; user: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const messagesLoadedRef = useRef(false);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const connectionAttemptsRef = useRef(0);
 
-  // Handle room changes and cleanup
   useEffect(() => {
-    // Reset state when room changes
     setMessages([]);
     setLoading(true);
     setLoadingError(null);
+    setIsConnected(false);
     messagesLoadedRef.current = false;
+    connectionAttemptsRef.current = 0;
     
-    // Clean up any existing subscription
     return () => {
       if (channelRef.current) {
         channelRef.current.unsubscribe();
@@ -51,17 +51,14 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
     };
   }, [roomId]);
 
-  // Load initial messages
   useEffect(() => {
     const fetchMessages = async () => {
       if (!roomId || messagesLoadedRef.current) return;
       
-      // Clear any existing timeout
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
       }
       
-      // Set up timeout to prevent endless loading
       loadingTimeoutRef.current = setTimeout(() => {
         if (loading) {
           setLoading(false);
@@ -72,7 +69,7 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
             variant: "destructive"
           });
         }
-      }, 4000); // 4 seconds timeout (reduced from 6)
+      }, 8000);
       
       try {
         setLoading(true);
@@ -81,14 +78,32 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
         const data = await chatService.getChatMessages(roomId);
         setMessages(data);
         messagesLoadedRef.current = true;
+        connectionAttemptsRef.current = 0;
       } catch (error) {
         console.error("Error fetching messages:", error);
         setLoadingError("Failed to load chat messages");
-        toast({
-          title: "Error loading messages",
-          description: "Failed to load chat messages. Please try refreshing.",
-          variant: "destructive"
-        });
+        
+        connectionAttemptsRef.current += 1;
+        
+        const retryDelay = Math.min(2000 * connectionAttemptsRef.current, 10000);
+        
+        if (connectionAttemptsRef.current <= 3) {
+          toast({
+            title: "Retrying connection",
+            description: `Attempting to reconnect (${connectionAttemptsRef.current}/3)...`,
+            variant: "default"
+          });
+          
+          setTimeout(() => {
+            fetchMessages();
+          }, retryDelay);
+        } else {
+          toast({
+            title: "Error loading messages",
+            description: "Failed to load chat messages. Please try refreshing.",
+            variant: "destructive"
+          });
+        }
       } finally {
         setLoading(false);
         if (loadingTimeoutRef.current) {
@@ -103,28 +118,27 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
     }
   }, [roomId, toast, loading]);
 
-  // Subscribe to new messages
   useEffect(() => {
     if (!roomId || !messagesLoadedRef.current) return;
     
-    // First unsubscribe from any existing channel
     if (channelRef.current) {
       channelRef.current.unsubscribe();
     }
 
     try {
-      // Then subscribe to the current room
       channelRef.current = chatService.subscribeToRoom(roomId, (newMessage) => {
         setMessages(prevMessages => {
-          // Check if message already exists to prevent duplicates
           if (prevMessages.some(msg => msg.id === newMessage.id)) {
             return prevMessages;
           }
           return [...prevMessages, newMessage];
         });
       });
+      
+      setIsConnected(true);
     } catch (error) {
       console.error("Error subscribing to room:", error);
+      setIsConnected(false);
       toast({
         title: "Connection error",
         description: "Failed to connect to chat room. Please refresh the page.",
@@ -133,7 +147,6 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
     }
   }, [roomId, toast, messagesLoadedRef.current]);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     if (scrollAreaRef.current && !loading && messages.length > 0) {
       const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
@@ -154,7 +167,6 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
         replyingTo?.id
       );
       
-      // Add the message to local state to ensure UI updates immediately
       setMessages(prev => {
         if (prev.some(msg => msg.id === newMessage.id)) {
           return prev;
@@ -192,7 +204,6 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
         const newLikesCount = liked ? (message.likes || 0) + 1 : Math.max(0, (message.likes || 0) - 1);
         await chatService.updateMessage(messageId, { likes: newLikesCount });
         
-        // Update the local state
         setMessages(prevMessages => 
           prevMessages.map(msg => 
             msg.id === messageId ? { ...msg, likes: newLikesCount } : msg
@@ -278,6 +289,20 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
     );
   };
 
+  const connectionStatus = () => {
+    if (!messagesLoadedRef.current) return null;
+    
+    if (!isConnected) {
+      return (
+        <div className="fixed bottom-20 right-6 bg-red-600 text-white px-3 py-1 rounded-full text-xs flex items-center gap-1">
+          <span className="h-2 w-2 bg-white rounded-full animate-pulse"></span>
+          Disconnected
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="flex flex-col h-full">
       <ChatHeader roomName={roomName} participantCount={23} />
@@ -291,6 +316,7 @@ const ChatRoom = ({ roomId, roomName }: ChatRoomProps) => {
         replyingTo={replyingTo}
         onCancelReply={() => setReplyingTo(null)}
       />
+      {connectionStatus()}
     </div>
   );
 };

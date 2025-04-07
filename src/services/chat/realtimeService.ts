@@ -6,9 +6,16 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 export const realtimeService = {
   // Subscribe to new messages with improved connection handling
   subscribeToRoom(roomId: string, callback: (message: ChatMessage) => void): RealtimeChannel {
-    // Improved channel configuration with auto-reconnect
+    // Improved channel configuration with auto-reconnect and explicit reconnection strategy
     return supabase
-      .channel(`room:${roomId}`)
+      .channel(`room:${roomId}`, {
+        config: {
+          broadcast: { self: true },
+          presence: { key: '' },
+          retryIntervalMs: 2000, // Retry connection every 2s
+          timeout: 10000 // Increase channel connection timeout
+        }
+      })
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
@@ -19,7 +26,7 @@ export const realtimeService = {
           // Simplified user data handling
           const message = payload.new as ChatMessage;
           
-          // Get user data from profiles
+          // Get user data from profiles with shorter timeout
           supabase
             .from('profiles')
             .select('id, username, avatar_url')
@@ -48,7 +55,6 @@ export const realtimeService = {
                 }
               });
             })
-            // Convert the PromiseLike to a proper Promise to ensure catch is available
             .then(undefined, error => {
               console.error('Error in real-time user data fetch:', error);
               callback({
@@ -62,6 +68,14 @@ export const realtimeService = {
             });
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Realtime connection status: ${status}`);
+        if (status === 'SUBSCRIBED') {
+          console.log(`Successfully subscribed to room: ${roomId}`);
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error(`Error subscribing to room: ${roomId}`);
+        }
+      });
   }
 };

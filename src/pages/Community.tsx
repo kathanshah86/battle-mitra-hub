@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -14,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Mock data for online users until we implement user presence
 const mockOnlineUsers = [
   { id: "user1", name: "Rajesh", status: "online" as const, game: "BGMI" },
   { id: "user2", name: "Priya", status: "online" as const },
@@ -35,16 +33,20 @@ const Community = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const [retryCount, setRetryCount] = useState(0);
+  const [loadTimerId, setLoadTimerId] = useState<NodeJS.Timeout | null>(null);
 
-  // Initialize from local storage if available
   useEffect(() => {
-    // Try to recover active chat from localStorage
     const savedChatId = localStorage.getItem('activeChat');
     if (savedChatId) {
-      // We'll populate this once we fetch the rooms
       console.log('Found saved chat:', savedChatId);
     }
-  }, []);
+    
+    return () => {
+      if (loadTimerId) {
+        clearTimeout(loadTimerId);
+      }
+    };
+  }, [loadTimerId]);
 
   const fetchChatRooms = useCallback(async () => {
     if (!user) return;
@@ -53,55 +55,59 @@ const Community = () => {
       setLoading(true);
       setError(null);
       
-      // Add a shorter timeout for better UX
+      if (loadTimerId) {
+        clearTimeout(loadTimerId);
+      }
+      
       const timeoutId = setTimeout(() => {
         if (loading) {
           setLoading(false);
-          setError("Loading took too long. Please refresh and try again.");
+          setError("Loading took too long. Please try again.");
           toast({
             title: "Loading timeout",
             description: "Chat rooms took too long to load. Please try again.",
             variant: "destructive"
           });
         }
-      }, 3000); // 3 seconds timeout (reduced from 5)
+      }, 6000);
+      
+      setLoadTimerId(timeoutId);
       
       const rooms = await chatService.getChatRooms();
       
-      // Clear timeout as we've got data
       clearTimeout(timeoutId);
+      setLoadTimerId(null);
       
       if (rooms.length === 0) {
         setError("No chat rooms found");
       } else {
         setChatRooms(rooms);
         
-        // Try to restore the previously active chat
         const savedChatId = localStorage.getItem('activeChat');
         if (savedChatId) {
           const savedRoom = rooms.find(r => r.id === savedChatId);
           if (savedRoom) {
             setActiveChat(savedRoom);
           } else {
-            // Fall back to first room if saved room not found
             setActiveChat(rooms[0]);
           }
         } else if (!activeChat) {
-          // Set the first room as active by default if no active chat
           setActiveChat(rooms[0]);
         }
       }
       
-      // Reset retry count on success
       setRetryCount(0);
     } catch (err) {
       console.error("Failed to fetch chat rooms:", err);
       setError("Failed to load chat rooms. Please try again later.");
       
-      // Increment retry count
+      if (loadTimerId) {
+        clearTimeout(loadTimerId);
+        setLoadTimerId(null);
+      }
+      
       setRetryCount(prev => prev + 1);
       
-      // Only show toast for first few errors to avoid spamming
       if (retryCount < 2) {
         toast({
           title: "Error loading chat rooms",
@@ -112,19 +118,16 @@ const Community = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, loading, activeChat, retryCount, user]);
+  }, [toast, loading, activeChat, retryCount, user, loadTimerId]);
 
-  // Initial data fetch
   useEffect(() => {
     if (user) {
       fetchChatRooms();
     }
   }, [user, fetchChatRooms]);
 
-  // Auto-retry with shorter delay
   useEffect(() => {
     if (error && retryCount > 0 && retryCount < 3) {
-      // Shorter timeout for better UX (max 5 seconds)
       const timeout = Math.min(1000 * Math.pow(1.5, retryCount - 1), 5000);
       console.log(`Will retry in ${timeout}ms`);
       
@@ -137,22 +140,18 @@ const Community = () => {
     }
   }, [error, retryCount, fetchChatRooms]);
 
-  // Handle room selection
   const handleRoomSelect = (roomId: string) => {
     const room = chatRooms.find(r => r.id === roomId);
     if (room) {
       console.log("Selected room:", room.name);
       setActiveChat(room);
       
-      // Save active chat to localStorage
       localStorage.setItem('activeChat', room.id);
       
-      // Reset any errors when changing rooms
       setError(null);
     }
   };
 
-  // Login screen if not authenticated
   if (!user) {
     return (
       <>
@@ -289,17 +288,14 @@ const Community = () => {
           <h1 className="text-3xl font-bold font-orbitron mb-6">Community Chat</h1>
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 h-[calc(100vh-220px)] rounded-lg overflow-hidden border border-gray-800">
-            {/* Chat Room List - Left Sidebar */}
             <div className="lg:col-span-2 h-full">
               {renderRoomsSection()}
             </div>
             
-            {/* Main Chat Area */}
             <div className="lg:col-span-7 h-full">
               {renderChatSection()}
             </div>
             
-            {/* Online Users - Right Sidebar */}
             {showOnlineUsers && (
               <div className="hidden lg:block lg:col-span-3 h-full">
                 <OnlineUsers users={mockOnlineUsers} />
