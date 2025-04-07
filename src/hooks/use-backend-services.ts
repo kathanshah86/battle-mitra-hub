@@ -1,7 +1,7 @@
-
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from '@/hooks/use-toast';
+import { useMongoDB } from '@/hooks/use-mongodb';
 
 interface AIRequestParams {
   prompt: string;
@@ -29,7 +29,8 @@ export const useBackendServices = () => {
   const [emailLoading, setEmailLoading] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
-
+  const mongodb = useMongoDB();
+  
   const getGameStrategy = async ({ prompt, gameType }: AIRequestParams) => {
     setAiLoading(true);
     setAiResponse(null);
@@ -132,5 +133,6 @@ export const useBackendServices = () => {
     emailLoading,
     paymentLoading,
     aiResponse,
+    mongodb,
   };
 };
