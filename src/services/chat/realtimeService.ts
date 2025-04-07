@@ -6,14 +6,12 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 export const realtimeService = {
   // Subscribe to new messages with improved connection handling
   subscribeToRoom(roomId: string, callback: (message: ChatMessage) => void): RealtimeChannel {
-    // Improved channel configuration with auto-reconnect and explicit reconnection strategy
+    // Improved channel configuration with auto-reconnect
     return supabase
       .channel(`room:${roomId}`, {
         config: {
           broadcast: { self: true },
-          presence: { key: '' },
-          retryIntervalMs: 2000, // Retry connection every 2s
-          timeout: 10000 // Increase channel connection timeout
+          presence: { key: '' }
         }
       })
       .on('postgres_changes', { 
