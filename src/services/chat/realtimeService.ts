@@ -6,6 +6,8 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 export const realtimeService = {
   // Subscribe to new messages with improved connection handling
   subscribeToRoom(roomId: string, callback: (message: ChatMessage) => void): RealtimeChannel {
+    console.log(`Setting up subscription for room: ${roomId}`);
+    
     // Improved channel configuration with auto-reconnect
     return supabase
       .channel(`room:${roomId}`, {
@@ -23,6 +25,7 @@ export const realtimeService = {
         if (payload.new) {
           // Simplified user data handling
           const message = payload.new as ChatMessage;
+          console.log(`New message received in room ${roomId}:`, message.id);
           
           // Get user data from profiles with shorter timeout
           supabase

@@ -7,6 +7,8 @@ const MESSAGES_LIMIT = 20;
 export const messagesService = {
   // Get messages for a specific room with optimized query
   async getChatMessages(roomId: string): Promise<ChatMessage[]> {
+    console.log(`Fetching messages for room: ${roomId}`);
+    
     // Try to use cached messages for immediate display while loading fresh ones
     const cacheKey = `chatMessages_${roomId}`;
     const cachedMessages = sessionStorage.getItem(cacheKey);
@@ -23,7 +25,7 @@ export const messagesService = {
     
     // Add a shorter timeout
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Messages query timed out')), 3000); // 3 second timeout
+      setTimeout(() => reject(new Error('Messages query timed out')), 2500); // 2.5 second timeout
     });
     
     const queryPromise = supabase
@@ -45,7 +47,8 @@ export const messagesService = {
       `)
       .eq('room_id', roomId)
       .order('created_at', { ascending: false })
-      .limit(MESSAGES_LIMIT);
+      .limit(MESSAGES_LIMIT)
+      .abortSignal(AbortSignal.timeout(2000)); // 2 second abort signal
     
     try {
       // Race between the query and the timeout
@@ -72,7 +75,7 @@ export const messagesService = {
         if (initialMessages.length > 0) {
           return initialMessages;
         }
-        throw error;
+        throw new Error(`Failed to load messages: ${error.message}`);
       }
       
       // Process the messages
@@ -118,7 +121,12 @@ export const messagesService = {
         return initialMessages;
       }
       
-      throw error;
+      // Make sure we throw a proper Error object
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error('Unknown error fetching messages');
+      }
     }
   },
   
@@ -151,7 +159,7 @@ export const messagesService = {
       
       if (error) {
         console.error('Error sending message:', error);
-        throw error;
+        throw new Error(`Failed to send message: ${error.message}`);
       }
       
       // Transform the data
@@ -176,7 +184,12 @@ export const messagesService = {
       };
     } catch (error) {
       console.error('Failed to send message:', error);
-      throw error;
+      
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error('Unknown error sending message');
+      }
     }
   },
   
@@ -190,11 +203,16 @@ export const messagesService = {
       
       if (error) {
         console.error('Error updating message:', error);
-        throw error;
+        throw new Error(`Failed to update message: ${error.message}`);
       }
     } catch (error) {
       console.error('Failed to update message:', error);
-      throw error;
+      
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error('Unknown error updating message');
+      }
     }
   }
 };
