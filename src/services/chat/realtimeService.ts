@@ -48,7 +48,8 @@ export const realtimeService = {
                 }
               });
             })
-            .catch(error => {
+            // Convert the PromiseLike to a proper Promise to ensure catch is available
+            .then(undefined, error => {
               console.error('Error in real-time user data fetch:', error);
               callback({
                 ...message,

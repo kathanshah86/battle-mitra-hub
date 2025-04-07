@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ThumbsUp, MessageSquare, Flag } from "lucide-react";
-import { ChatMessage as ChatMessageType } from "@/services/chatService";
+import { ChatMessage as ChatMessageType } from "@/services/chat";
 import { formatDistanceToNow } from "date-fns";
 
 interface ChatMessageProps {
