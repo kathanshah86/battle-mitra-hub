@@ -31,7 +31,7 @@ const JoinCommunity = () => {
                 Find teammates, make friends, and build your network in the gaming community.
               </p>
               <Button variant="link" asChild className="text-esports-purple mt-2 p-0">
-                <Link to="/community">Join Chat</Link>
+                <Link to="/tournaments">Join Tournaments</Link>
               </Button>
             </div>
             
@@ -71,7 +71,7 @@ const JoinCommunity = () => {
               <Link to="/signup">Create Account</Link>
             </Button>
             <Button asChild variant="outline" className="text-lg h-12 px-8 border-esports-purple text-white hover:bg-esports-purple/10">
-              <Link to="/community">Join Community</Link>
+              <Link to="/tournaments">Join Tournaments</Link>
             </Button>
           </div>
         </div>
