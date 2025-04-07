@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ChatRoom } from './types';
 
@@ -8,12 +9,14 @@ const fallbackRooms: ChatRoom[] = [
     name: 'General Chat',
     type: 'general',
     description: 'Main discussion area',
+    image_url: '', // Added empty string for image_url
   },
   {
     id: '2',
     name: 'Battle Mitra',
     type: 'game',
     description: 'Discussion for Battle Mitra game and strategies',
+    image_url: '', // Added empty string for image_url
   }
 ];
 
@@ -83,7 +86,7 @@ export const roomsService = {
         name: room.name,
         type: (room.type as 'general' | 'game' | 'team'),
         description: room.description,
-        image_url: room.image_url,
+        image_url: room.image_url || '', // Ensure image_url is never null
       })) || [];
       
       // Add Battle Mitra if it doesn't exist in the database results
@@ -95,7 +98,8 @@ export const roomsService = {
             .insert({
               name: 'Battle Mitra',
               type: 'game',
-              description: 'Discussion for Battle Mitra game and strategies'
+              description: 'Discussion for Battle Mitra game and strategies',
+              image_url: '' // Add empty image_url value
             })
             .select('*')
             .single();
@@ -107,7 +111,7 @@ export const roomsService = {
               name: newRoom.name,
               type: (newRoom.type as 'general' | 'game' | 'team'),
               description: newRoom.description,
-              image_url: newRoom.image_url,
+              image_url: newRoom.image_url || '', // Ensure image_url is never null
             });
           } else {
             console.error('Error creating Battle Mitra room:', createError);
@@ -118,6 +122,7 @@ export const roomsService = {
               name: 'Battle Mitra',
               type: 'game',
               description: 'Discussion for Battle Mitra game and strategies',
+              image_url: '', // Add image_url with empty string
             });
           }
         } catch (createErr) {
@@ -129,6 +134,7 @@ export const roomsService = {
             name: 'Battle Mitra',
             type: 'game',
             description: 'Discussion for Battle Mitra game and strategies',
+            image_url: '', // Add image_url with empty string
           });
         }
       }
