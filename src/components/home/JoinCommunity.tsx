@@ -68,7 +68,7 @@ const JoinCommunity = () => {
           
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button asChild className="text-lg h-12 px-8 bg-gradient-to-r from-esports-purple to-esports-blue hover:opacity-90 transition-opacity shadow-lg">
-              <Link to="/signup">Create Account</Link>
+              <Link to="/auth">Create Account</Link>
             </Button>
             <Button asChild variant="outline" className="text-lg h-12 px-8 border-esports-purple text-white hover:bg-esports-purple/10">
               <Link to="/tournaments">Join Tournaments</Link>
