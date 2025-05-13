@@ -1,179 +1,19 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Battle Mitra - Esports Tournament Platform</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-</head>
-<body>
-  <header class="navbar">
-    <div class="container">
-      <div class="navbar-content">
-        <a href="index.html" class="logo">
-          <h1>Battle Mitra</h1>
-        </a>
-        <nav class="nav-links">
-          <a href="index.html" class="nav-link active">Home</a>
-          <a href="tournaments.html" class="nav-link">Tournaments</a>
-          <a href="leaderboards.html" class="nav-link">Leaderboards</a>
-          <a href="live.html" class="nav-link">Live</a>
-          <a href="news.html" class="nav-link">News</a>
-          <a href="support.html" class="nav-link">Support</a>
-        </nav>
-        <div class="auth-buttons">
-          <a href="login.html" class="login-btn">Login</a>
-          <a href="signup.html" class="signup-btn">Sign Up</a>
-        </div>
-        <button class="menu-toggle" id="menuToggle">
-          <i data-feather="menu"></i>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="container">
-        <div class="hero-content">
-          <h1 class="hero-title">The Ultimate Esports Tournament Platform</h1>
-          <p class="hero-subtitle">Join thousands of players competing in tournaments across various games. Showcase your skills, win prizes, and climb the ranks.</p>
-          <div class="hero-actions">
-            <a href="tournaments.html" class="primary-btn">Browse Tournaments</a>
-            <a href="signup.html" class="secondary-btn">Create Account</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Upcoming Tournaments Section -->
-    <section class="tournaments-section">
-      <div class="container">
-        <h2 class="section-title">Upcoming Tournaments</h2>
-        <div class="tournaments-grid" id="upcomingTournaments">
-          <!-- Tournament cards will be loaded here via JavaScript -->
-          <div class="loader" id="tournamentsLoader"></div>
-        </div>
-        <div class="section-footer">
-          <a href="tournaments.html" class="view-more-btn">View All Tournaments</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- Live Matches Section -->
-    <section class="live-matches-section">
-      <div class="container">
-        <h2 class="section-title">Live Matches</h2>
-        <div class="live-matches-grid" id="liveMatches">
-          <!-- Live matches will be loaded here via JavaScript -->
-          <div class="loader" id="matchesLoader"></div>
-        </div>
-        <div class="section-footer">
-          <a href="live.html" class="view-more-btn">View All Matches</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- Sponsors Section -->
-    <section class="sponsors-section">
-      <div class="container">
-        <h2 class="section-title">Our Sponsors</h2>
-        <div class="sponsors-grid">
-          <div class="sponsor-card">
-            <img src="images/sponsor-1.png" alt="Sponsor 1">
-          </div>
-          <div class="sponsor-card">
-            <img src="images/sponsor-2.png" alt="Sponsor 2">
-          </div>
-          <div class="sponsor-card">
-            <img src="images/sponsor-3.png" alt="Sponsor 3">
-          </div>
-          <div class="sponsor-card">
-            <img src="images/sponsor-4.png" alt="Sponsor 4">
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Top Players Section -->
-    <section class="players-section">
-      <div class="container">
-        <h2 class="section-title">Top Players</h2>
-        <div class="players-grid" id="topPlayers">
-          <!-- Players will be loaded here via JavaScript -->
-          <div class="loader" id="playersLoader"></div>
-        </div>
-        <div class="section-footer">
-          <a href="leaderboards.html" class="view-more-btn">View Leaderboards</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- Join Community Section -->
-    <section class="community-section">
-      <div class="container">
-        <div class="community-content">
-          <h2 class="section-title">Join Our Gaming Community</h2>
-          <p class="section-subtitle">Connect with other players, form teams, and stay updated on the latest tournaments.</p>
-          <a href="signup.html" class="primary-btn">Join Now</a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-section">
-          <h3 class="footer-title">Battle Mitra</h3>
-          <p class="footer-description">The ultimate platform for esports enthusiasts and competitive gamers.</p>
-          <div class="social-links">
-            <a href="#" class="social-link"><i data-feather="facebook"></i></a>
-            <a href="#" class="social-link"><i data-feather="twitter"></i></a>
-            <a href="#" class="social-link"><i data-feather="instagram"></i></a>
-            <a href="#" class="social-link"><i data-feather="youtube"></i></a>
-          </div>
-        </div>
-        <div class="footer-section">
-          <h3 class="footer-title">Quick Links</h3>
-          <ul class="footer-links">
-            <li><a href="tournaments.html">Tournaments</a></li>
-            <li><a href="leaderboards.html">Leaderboards</a></li>
-            <li><a href="live.html">Live Matches</a></li>
-            <li><a href="news.html">News & Updates</a></li>
-          </ul>
-        </div>
-        <div class="footer-section">
-          <h3 class="footer-title">Support</h3>
-          <ul class="footer-links">
-            <li><a href="support.html">Help Center</a></li>
-            <li><a href="support.html">Contact Us</a></li>
-            <li><a href="support.html">FAQs</a></li>
-            <li><a href="#">Terms of Service</a></li>
-          </ul>
-        </div>
-        <div class="footer-section">
-          <h3 class="footer-title">Newsletter</h3>
-          <p class="footer-description">Subscribe to get updates on tournaments and events.</p>
-          <form class="newsletter-form">
-            <input type="email" placeholder="Your email" required>
-            <button type="submit" class="newsletter-btn">Subscribe</button>
-          </form>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2025 Battle Mitra. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
-
-  <script src="app.js"></script>
-  <script>
-    feather.replace();
-  </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="ESports Tournament Platform - Compete in your favorite games and win prizes" />
+    <meta property="og:title" content="ESports Tournament Platform" />
+    <meta property="og:description" content="Join competitive tournaments, track your stats, and connect with other players" />
+    <meta property="og:image" content="/og-image.png" />
+    <title>ESports Tournament Platform</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
