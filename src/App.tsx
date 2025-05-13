@@ -101,9 +101,7 @@ const App = () => {
               {/* Admin Routes */}
               <Route path="/admin" element={
                 <RequireAdmin>
-                  <AdminLayout>
-                    <Outlet />
-                  </AdminLayout>
+                  <AdminLayout />
                 </RequireAdmin>
               }>
                 <Route index element={<Dashboard />} />
