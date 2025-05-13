@@ -107,10 +107,10 @@ export const roomsService = {
           if (!createError && newRoom) {
             console.log('Created new Battle Mitra room:', newRoom);
             rooms.push({
-              id: newRoom.id,
+              id: newRoom.id || '2',
               name: newRoom.name,
               type: (newRoom.type as 'general' | 'game' | 'team'),
-              description: newRoom.description,
+              description: newRoom.description || '',
               image_url: newRoom.image_url || '', // Ensure image_url is never null
             });
           } else {

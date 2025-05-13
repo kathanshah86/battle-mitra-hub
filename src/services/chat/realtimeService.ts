@@ -50,9 +50,9 @@ export const realtimeService = {
               callback({
                 ...message,
                 user: {
-                  id: userData.id,
-                  name: userData.username || 'Unknown User',
-                  avatar_url: userData.avatar_url || '',
+                  id: userData?.id || message.user_id,
+                  name: userData?.username || 'Unknown User',
+                  avatar_url: userData?.avatar_url || '',
                 }
               });
             })

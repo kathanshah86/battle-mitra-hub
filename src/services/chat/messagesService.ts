@@ -162,6 +162,10 @@ export const messagesService = {
         throw new Error(`Failed to send message: ${error.message}`);
       }
       
+      if (!data) {
+        throw new Error('No data returned from insert operation');
+      }
+      
       // Transform the data
       let username = 'Unknown User';
       let avatarUrl = '';
@@ -175,7 +179,14 @@ export const messagesService = {
       }
       
       return {
-        ...data,
+        id: data.id,
+        content: data.content,
+        user_id: data.user_id,
+        room_id: data.room_id,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        likes: data.likes || 0,
+        reply_to: data.reply_to,
         user: {
           id: data.user_id,
           name: username,
@@ -198,7 +209,7 @@ export const messagesService = {
     try {
       const { error } = await supabase
         .from('chat_messages')
-        .update(updates)
+        .update(updates as any)
         .eq('id', messageId);
       
       if (error) {
