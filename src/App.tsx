@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import { useSupabaseInit } from '@/hooks/useSupabaseInit';
 
@@ -99,16 +99,18 @@ const App = () => {
               <Route path="/wallet" element={<Wallet />} />
 
               {/* Admin Routes */}
-              <Route element={<RequireAdmin />}>
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="tournaments" element={<AdminTournaments />} />
-                  <Route path="users" element={<Users />} />
-                  <Route path="payments" element={<Payments />} />
-                  <Route path="security" element={<Security />} />
-                  <Route path="settings" element={<Settings />} />
-                </Route>
+              <Route path="/admin" element={
+                <RequireAdmin>
+                  <AdminLayout />
+                </RequireAdmin>
+              }>
+                <Route index element={<Dashboard />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="tournaments" element={<AdminTournaments />} />
+                <Route path="users" element={<Users />} />
+                <Route path="payments" element={<Payments />} />
+                <Route path="security" element={<Security />} />
+                <Route path="settings" element={<Settings />} />
               </Route>
 
               {/* Not Found */}
