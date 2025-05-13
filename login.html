@@ -1,0 +1,111 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Battle Mitra</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body>
+  <header class="navbar">
+    <div class="container">
+      <div class="navbar-content">
+        <a href="index.html" class="logo">
+          <h1>Battle Mitra</h1>
+        </a>
+        <nav class="nav-links">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="tournaments.html" class="nav-link">Tournaments</a>
+          <a href="leaderboards.html" class="nav-link">Leaderboards</a>
+          <a href="live.html" class="nav-link">Live</a>
+          <a href="news.html" class="nav-link">News</a>
+          <a href="support.html" class="nav-link">Support</a>
+        </nav>
+        <div class="auth-buttons">
+          <a href="login.html" class="login-btn active">Login</a>
+          <a href="signup.html" class="signup-btn">Sign Up</a>
+        </div>
+        <button class="menu-toggle" id="menuToggle">
+          <i data-feather="menu"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="auth-section">
+      <div class="container">
+        <div class="auth-container">
+          <div class="auth-card">
+            <h2 class="auth-title">Login to Your Account</h2>
+            <p class="auth-subtitle">Welcome back! Please enter your credentials.</p>
+            
+            <div class="auth-social">
+              <button class="auth-social-btn google-btn">
+                <img src="images/google-icon.png" alt="Google">
+                <span>Continue with Google</span>
+              </button>
+              <button class="auth-social-btn discord-btn">
+                <img src="images/discord-icon.png" alt="Discord">
+                <span>Continue with Discord</span>
+              </button>
+            </div>
+            
+            <div class="auth-divider">
+              <span>or</span>
+            </div>
+            
+            <form id="loginForm" class="auth-form">
+              <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-input">
+                  <input type="password" id="password" name="password" required>
+                  <button type="button" class="toggle-password" data-target="password">
+                    <i data-feather="eye"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="form-group remember-forgot">
+                <div class="remember-me">
+                  <input type="checkbox" id="remember" name="remember">
+                  <label for="remember">Remember me</label>
+                </div>
+                <a href="#" class="forgot-password">Forgot password?</a>
+              </div>
+              
+              <button type="submit" class="auth-submit-btn">Log In</button>
+            </form>
+            
+            <p class="auth-redirect">
+              Don't have an account? <a href="signup.html">Sign up now</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2025 Battle Mitra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    feather.replace();
+  </script>
+</body>
+</html>

@@ -1,69 +1,46 @@
-# Welcome to your Lovable project
 
-## Project info
+# Battle Mitra - Esports Tournament Platform
 
-**URL**: https://lovable.dev/projects/1852f6a3-eaa1-40d0-b812-59993034d83b
+This is a simplified HTML/CSS/JS version of the Battle Mitra esports tournament platform designed to be integrated with a Flask backend.
 
-## How can I edit this code?
+## Structure
 
-There are several ways of editing your application.
+- `index.html` - Homepage
+- `tournaments.html` - Tournaments listing page
+- `login.html` - Login page
+- `signup.html` - Signup page
+- `styles.css` - Main stylesheet
+- `app.js` - Core functionality shared across pages
+- `tournaments.js` - Tournaments page specific functionality
+- `auth.js` - Authentication related functionality
 
-**Use Lovable**
+## Integration with Flask
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/1852f6a3-eaa1-40d0-b812-59993034d83b) and start prompting.
+To integrate this frontend with a Flask backend:
 
-Changes made via Lovable will be committed automatically to this repo.
+1. Move all the HTML, CSS, and JS files to your Flask project's `static` and `templates` folders
+2. Convert the HTML files to Flask templates by:
+   - Moving common elements (header, footer) to separate template files
+   - Adding Jinja2 template syntax for dynamic content
+   - Replacing hardcoded links with Flask URL helpers
 
-**Use your preferred IDE**
+3. Update the JavaScript files to work with your Flask backend:
+   - Replace the mock data functions with actual API calls
+   - Implement proper authentication using Flask-Login
+   - Add CSRF protection for forms
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Features
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Responsive design for mobile and desktop
+- Tournament listings with filtering and sorting
+- Authentication system (login/signup)
+- Live matches display
+- Player rankings
 
-Follow these steps:
+## Mock Data
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+The current implementation uses mock data in the JavaScript files. In a real implementation, these would be replaced with API calls to your Flask backend.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Images
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/1852f6a3-eaa1-40d0-b812-59993034d83b) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+The `/images` directory contains placeholder images. You should replace these with your actual images.

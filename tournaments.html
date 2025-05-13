@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tournaments - Battle Mitra</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body>
+  <header class="navbar">
+    <div class="container">
+      <div class="navbar-content">
+        <a href="index.html" class="logo">
+          <h1>Battle Mitra</h1>
+        </a>
+        <nav class="nav-links">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="tournaments.html" class="nav-link active">Tournaments</a>
+          <a href="leaderboards.html" class="nav-link">Leaderboards</a>
+          <a href="live.html" class="nav-link">Live</a>
+          <a href="news.html" class="nav-link">News</a>
+          <a href="support.html" class="nav-link">Support</a>
+        </nav>
+        <div class="auth-buttons">
+          <a href="login.html" class="login-btn">Login</a>
+          <a href="signup.html" class="signup-btn">Sign Up</a>
+        </div>
+        <button class="menu-toggle" id="menuToggle">
+          <i data-feather="menu"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Tournaments Header -->
+    <section class="page-header tournaments-header">
+      <div class="container">
+        <h1 class="page-title">Tournaments</h1>
+        <p class="page-description">Browse through our wide range of tournaments across various games and regions. Find the perfect competition to showcase your skills and win amazing prizes.</p>
+      </div>
+    </section>
+
+    <!-- Tournaments Filters -->
+    <section class="filters-section">
+      <div class="container">
+        <div class="filters-card">
+          <div class="filters-header">
+            <div class="filters-title">
+              <i data-feather="filter" class="filter-icon"></i>
+              <h2>Filters</h2>
+            </div>
+            <button id="resetFilters" class="reset-btn">
+              <i data-feather="x" class="reset-icon"></i>
+              Reset Filters
+            </button>
+          </div>
+
+          <div class="filters-grid">
+            <div class="filter-group">
+              <div class="search-input">
+                <i data-feather="search" class="search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Search tournaments...">
+              </div>
+            </div>
+            
+            <div class="filter-group">
+              <select id="statusFilter" class="filter-select">
+                <option value="all">All Statuses</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <select id="gameFilter" class="filter-select">
+                <option value="all">All Games</option>
+                <option value="fps">FPS</option>
+                <option value="battle-royale">Battle Royale</option>
+                <option value="moba">MOBA</option>
+                <option value="sports">Sports</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <select id="feeFilter" class="filter-select">
+                <option value="all">All Fees</option>
+                <option value="free">Free Entry</option>
+                <option value="paid">Paid Entry</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <select id="regionFilter" class="filter-select">
+                <option value="all">All Regions</option>
+                <option value="Asia">Asia</option>
+                <option value="Europe">Europe</option>
+                <option value="North America">North America</option>
+                <option value="South America">South America</option>
+                <option value="Africa">Africa</option>
+                <option value="Oceania">Oceania</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tournaments Sorter -->
+    <section class="sorter-section">
+      <div class="container">
+        <div class="sorter-content">
+          <p class="results-count" id="resultsCount">0 tournaments found</p>
+          <div class="sorter-select-container">
+            <select id="sortSelect" class="sorter-select">
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="prize-high">Highest Prize</option>
+              <option value="prize-low">Lowest Prize</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tournaments List -->
+    <section class="tournaments-list-section">
+      <div class="container">
+        <div class="tournaments-grid" id="tournamentsList">
+          <!-- Tournament cards will be loaded here via JavaScript -->
+          <div class="loader" id="tournamentsLoader"></div>
+        </div>
+        
+        <!-- No Tournaments Found Message -->
+        <div class="no-tournaments-found" id="noTournamentsFound" style="display: none;">
+          <i data-feather="trophy" class="no-results-icon"></i>
+          <h3>No tournaments found</h3>
+          <p>We couldn't find any tournaments matching your filters.</p>
+          <button id="resetFiltersBtn" class="primary-btn">Reset Filters</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h3 class="footer-title">Battle Mitra</h3>
+          <p class="footer-description">The ultimate platform for esports enthusiasts and competitive gamers.</p>
+          <div class="social-links">
+            <a href="#" class="social-link"><i data-feather="facebook"></i></a>
+            <a href="#" class="social-link"><i data-feather="twitter"></i></a>
+            <a href="#" class="social-link"><i data-feather="instagram"></i></a>
+            <a href="#" class="social-link"><i data-feather="youtube"></i></a>
+          </div>
+        </div>
+        <div class="footer-section">
+          <h3 class="footer-title">Quick Links</h3>
+          <ul class="footer-links">
+            <li><a href="tournaments.html">Tournaments</a></li>
+            <li><a href="leaderboards.html">Leaderboards</a></li>
+            <li><a href="live.html">Live Matches</a></li>
+            <li><a href="news.html">News & Updates</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h3 class="footer-title">Support</h3>
+          <ul class="footer-links">
+            <li><a href="support.html">Help Center</a></li>
+            <li><a href="support.html">Contact Us</a></li>
+            <li><a href="support.html">FAQs</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h3 class="footer-title">Newsletter</h3>
+          <p class="footer-description">Subscribe to get updates on tournaments and events.</p>
+          <form class="newsletter-form">
+            <input type="email" placeholder="Your email" required>
+            <button type="submit" class="newsletter-btn">Subscribe</button>
+          </form>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 Battle Mitra. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="tournaments.js"></script>
+  <script>
+    feather.replace();
+  </script>
+</body>
+</html>
