@@ -29,7 +29,6 @@ import AdminLayout from './pages/admin/AdminLayout';
 
 // Components
 import RequireAdmin from './components/admin/RequireAdmin';
-import TournamentDetails from './components/tournaments/TournamentDetails';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -49,7 +48,7 @@ function App() {
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/tournaments" element={<Tournaments />} />
-        <Route path="/tournaments/:id" element={<TournamentDetails />} />
+        <Route path="/tournaments/:id" element={<TournamentDetail />} />
         <Route path="/live" element={<Live />} />
         <Route path="/leaderboards" element={<Leaderboards />} />
         <Route path="/news" element={<News />} />
